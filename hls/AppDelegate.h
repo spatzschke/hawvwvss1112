@@ -4,7 +4,7 @@
 //
 //  Created by Stan Patzschke on 24.11.11.
 //  Copyright (c) 2011 commercetools.de. All rights reserved.
-//
+// COMMENT
 
 #import <UIKit/UIKit.h>
 
