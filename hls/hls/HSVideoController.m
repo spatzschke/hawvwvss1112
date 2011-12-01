@@ -3,7 +3,7 @@
 //  hls
 //
 //  Created by Sebastian Schuler on 25.11.11.
-//  Copyright (c) 2011 commercetools.de. All rights reserved.
+//  Copyright (c) 2011  All rights reserved.
 //
 
 #import "HSVideoController.h"
