@@ -1,20 +1,24 @@
 //
 //  AppDelegate.m
-//  hls
+//  HLVideo
 //
-//  Created by Stan Patzschke on 24.11.11.
-//  Copyright (c) 2011 commercetools.de. All rights reserved.
+//  Created by Sebastian Schuler on 29.11.11.
+//  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
 //
 
 #import "AppDelegate.h"
 
+#import "ViewController.h"
+
 @implementation AppDelegate
 
 @synthesize window = _window;
+@synthesize viewController = _viewController;
 
 - (void)dealloc
 {
     [_window release];
+    [_viewController release];
     [super dealloc];
 }
 
@@ -22,8 +26,19 @@
 {
     self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
     // Override point for customization after application launch.
-    self.window.backgroundColor = [UIColor whiteColor];
+    self.viewController = [[[ViewController alloc] initWithNibName:@"ViewController" bundle:nil] autorelease];
+    self.window.rootViewController = self.viewController;
     [self.window makeKeyAndVisible];
+    
+    NSArray *arrayOfViews = [[NSBundle mainBundle] loadNibNamed:@"HSVideoPlayer"
+                                                          owner:nil
+                                                        options:nil];
+    
+    for (id currentObject in arrayOfViews) {
+        NSLog(@"%d", [currentObject tag]);
+    }
+    
+    
     return YES;
 }
 
