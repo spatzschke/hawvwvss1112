@@ -11,15 +11,14 @@
 @implementation ControlBar
 
 - (void) drawRect:(CGRect)rect {
-    
-    UIColor *color = [UIColor blackColor];
-    
+        
     CGContextRef context = UIGraphicsGetCurrentContext();
-    CGContextSetFillColor(context, CGColorGetComponents( [color CGColor]));
+     
+    [[UIColor colorWithWhite:0 alpha:0.6f] set];
     CGContextFillRect(context, rect);
-    
+     
     self.backgroundColor = [UIColor clearColor];
-    self.translucent = YES;
+    self.tintColor = [UIColor whiteColor];  
 }
 
 @end
