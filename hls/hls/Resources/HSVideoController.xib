@@ -260,7 +260,6 @@
 										<string key="NSFrame">{{18, 39}, {207, 23}}</string>
 										<reference key="NSSuperview" ref="52973637"/>
 										<reference key="NSWindow"/>
-										<reference key="NSNextKeyView"/>
 										<string key="NSReuseIdentifierKey">_NS:624</string>
 										<bool key="IBUIOpaque">NO</bool>
 										<string key="targetRuntimeIdentifier">IBIPadFramework</string>
@@ -275,6 +274,7 @@
 											<string key="NSClassName">NSImage</string>
 											<string key="NSResourceName">volume-max.png</string>
 										</object>
+										<reference key="IBUIMinimumTrackTintColor" ref="832613395"/>
 										<reference key="IBUIMaximumTrackTintColor" ref="730600131"/>
 									</object>
 								</array>
