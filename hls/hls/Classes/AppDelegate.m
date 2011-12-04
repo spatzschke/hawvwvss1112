@@ -1,8 +1,8 @@
 //
 //  AppDelegate.m
-//  HLVideo
+//  HLVideo2
 //
-//  Created by Sebastian Schuler on 29.11.11.
+//  Created by Sebastian Schuler on 04.12.11.
 //  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
 //
 
@@ -29,16 +29,6 @@
     self.viewController = [[[ViewController alloc] initWithNibName:@"ViewController" bundle:nil] autorelease];
     self.window.rootViewController = self.viewController;
     [self.window makeKeyAndVisible];
-    
-    NSArray *arrayOfViews = [[NSBundle mainBundle] loadNibNamed:@"HSVideoPlayer"
-                                                          owner:nil
-                                                        options:nil];
-    
-    for (id currentObject in arrayOfViews) {
-        NSLog(@"%d", [currentObject tag]);
-    }
-
-    
     return YES;
 }
 

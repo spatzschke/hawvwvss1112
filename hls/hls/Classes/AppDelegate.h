@@ -1,8 +1,8 @@
 //
 //  AppDelegate.h
-//  HLVideo
+//  HLVideo2
 //
-//  Created by Sebastian Schuler on 29.11.11.
+//  Created by Sebastian Schuler on 04.12.11.
 //  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
 //
 

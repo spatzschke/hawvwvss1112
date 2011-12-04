@@ -1,8 +1,8 @@
 //
 //  ViewController.m
-//  HLVideo
+//  HLVideo2
 //
-//  Created by Sebastian Schuler on 29.11.11.
+//  Created by Sebastian Schuler on 04.12.11.
 //  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
 //
 
@@ -22,14 +22,14 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
     NSURL *test = [[NSURL alloc] initWithString:@"http://google.de"];
     HSVideoController *video = [[HSVideoController alloc] initWithContentURL:test];
-
+    
     video.view.frame = view2.bounds;
     video.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-
-    [view2 addSubview:video.view];
     
+    [view2 addSubview:video.view];
 	// Do any additional setup after loading the view, typically from a nib.
 }
 

@@ -1,14 +1,16 @@
 //
-//  StreamingVideoController.h
-//  hls
+//  HSVideoController.h
+//  HLVideo
 //
-//  Created by Sebastian Schuler on 25.11.11.
-//  Copyright (c) 2011 commercetools.de. All rights reserved.
+//  Created by Sebastian Schuler on 04.12.11.
+//  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
 #import <AVFoundation/AVFoundation.h>
 #import <CoreMedia/CoreMedia.h>
+#import "PlaybackView.h"
+#import "UpperControlBar.h"
 
 enum {
     HSVideoFinishReasonPlaybackEnded,
@@ -16,34 +18,30 @@ enum {
 };
 typedef NSInteger HSVideoFinishReason;
 
-@interface HSVideoController : NSObject {
-
-    @private
+@interface HSVideoController : UIViewController {
+    
+@private
     
     AVPlayer *player;
     AVPlayerItem *playerItem;
-    AVPlayerLayer *playerLayer;
     
-    IBOutlet UILabel *IblTimeElapsed;
-    IBOutlet UILabel *IblTimeRemaining;
-    IBOutlet UIBarButtonItem *IblPlay;
-    IBOutlet UISlider *IblTimeControl;
-    IBOutlet UIToolbar *IblUpperControls;
-    IBOutlet UIToolbar *IblLowerControls;
+    IBOutlet PlaybackView *playbackView;
+    IBOutlet UpperControlBar *upperControls;
+    IBOutlet UIView *lowerControls;
+    IBOutlet UILabel *timeElapsed;
+    IBOutlet UILabel *timeRemaining;
+    IBOutlet UISlider *timeControl;
+    IBOutlet UISlider *volumeControl;
+    IBOutlet UIButton *playButton;
     
     id timeObserver;
     
-    @public
-    
-    UIView *view;
+@public
     
     NSURL *videoURL;
 }
 
 @property(nonatomic, copy) NSURL *videoURL;
-
-// The view in which the media and playback controls are displayed.
-@property(nonatomic, readonly) UIView *view;
 
 // Indicates if a movie should automatically start playback when it is 
 // likely to finish uninterrupted based on e.g. network conditions. Defaults to NO.
@@ -53,7 +51,7 @@ typedef NSInteger HSVideoFinishReason;
 @property(nonatomic, copy) NSString *scalingMode;
 
 - (id)initWithContentURL:(NSURL *)url;
-- (void)setFullscreen:(BOOL)fullscreen animated:(BOOL)animated;
+//- (void)setFullscreen:(BOOL)fullscreen animated:(BOOL)animated;
 
 @end
 
@@ -63,8 +61,3 @@ typedef NSInteger HSVideoFinishReason;
 extern NSString *const HSVideoPlaybackDidFinishNotification;
 
 extern NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey;
-
-
-
-
-

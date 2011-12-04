@@ -1,13 +1,12 @@
 //
-//  StreamingVideoController.m
-//  hls
+//  HSVideoController.m
+//  HLVideo
 //
-//  Created by Sebastian Schuler on 25.11.11.
-//  Copyright (c) 2011 commercetools.de. All rights reserved.
+//  Created by Sebastian Schuler on 04.12.11.
+//  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
 //
 
 #import "HSVideoController.h"
-
 
 NSString *const kTracksKey          = @"tracks";
 NSString *const kStatusKey          = @"status";
@@ -29,7 +28,6 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
 @interface HSVideoController (Player)
 - (void)prepareToPlayAsset:(AVURLAsset *)asset withKeys:(NSArray *)requestedKeys;
 - (void)loadAssetAsync;
-- (void)loadViewFromNib;
 - (CMTime)playerItemDuration;
 - (BOOL)isPlaying;
 @end
@@ -37,7 +35,6 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
 @implementation HSVideoController
 
 @synthesize videoURL;
-@synthesize view;
 @synthesize shouldAutoplay;
 @synthesize scalingMode;
 
@@ -48,7 +45,6 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
     {
         //self.videoURL = [url retain];
         //[self loadAssetAsync];
-        [self loadViewFromNib];
     }
     
     return self;
@@ -57,17 +53,15 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
 - (void)dealloc {
     
     [self.videoURL release];
-    [self.view release];
     [self.scalingMode release];
     
-    [IblTimeElapsed release];
-    [IblTimeRemaining release];
-    [IblPlay release];
-    [IblTimeControl release];
+    [timeElapsed release];
+    [timeRemaining release];
+    [timeControl release];
     
     [playerItem release];
     [player release];
-    [playerLayer release];
+    [playbackView release];
     
     [super dealloc];
 }
@@ -96,17 +90,17 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
 	CMTime playerDuration = [self playerItemDuration];
 	if (CMTIME_IS_INVALID(playerDuration)) 
 	{
-		IblTimeControl.minimumValue = 0.0;
+		timeControl.minimumValue = 0.0;
 		return;
 	} 
 	
 	double duration = CMTimeGetSeconds(playerDuration);
 	if (isfinite(duration) && (duration > 0))
 	{
-		float minValue = [IblTimeControl minimumValue];
-		float maxValue = [IblTimeControl maximumValue];
+		float minValue = [timeControl minimumValue];
+		float maxValue = [timeControl maximumValue];
 		double time = CMTimeGetSeconds([player currentTime]);
-		[IblTimeControl setValue:(maxValue - minValue) * time / duration + minValue];
+		[timeControl setValue:(maxValue - minValue) * time / duration + minValue];
 	}
 }
 
@@ -123,7 +117,7 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
 	double duration = CMTimeGetSeconds(playerDuration);
 	if (isfinite(duration))
 	{
-		CGFloat width = CGRectGetWidth([IblTimeControl bounds]);
+		CGFloat width = CGRectGetWidth([timeControl bounds]);
 		interval = 0.5f * duration / width;
 	}
     
@@ -131,10 +125,10 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
 	timeObserver = [[player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(interval, NSEC_PER_SEC) 
                                                          queue:NULL 
                                                     usingBlock:
-                                                        ^(CMTime time) 
-                                                        {
-                                                            [self syncScrubber];
-                                                        }] retain];
+                     ^(CMTime time) 
+                     {
+                         [self syncScrubber];
+                     }] retain];
 }
 
 /* Cancels the previously registered time observer. */
@@ -151,13 +145,6 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
 @end
 
 @implementation HSVideoController (Player)
-
-- (void) loadViewFromNib {
-    NSArray *arrayOfViews = [[NSBundle mainBundle] loadNibNamed:@"HSVideoPlayer"
-                                                          owner:nil
-                                                            options:nil];
-    view = [[arrayOfViews objectAtIndex:0] retain];
-}
 
 - (BOOL)isPlaying
 {
@@ -235,7 +222,7 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
         [playerItem removeObserver:self forKeyPath:kStatusKey];            
 		
         [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:AVPlayerItemDidPlayToEndTimeNotification
+                                                        name:AVPlayerItemDidPlayToEndTimeNotification
                                                       object:playerItem];
     }
 	
@@ -244,9 +231,9 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
     
     /* Observe the player item "status" key to determine when it is ready to play. */
     [playerItem addObserver:self 
-                      forKeyPath:kStatusKey 
-                         options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
-                         context:HSVideoPlayerItemStatusObserverContext];
+                 forKeyPath:kStatusKey 
+                    options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
+                    context:HSVideoPlayerItemStatusObserverContext];
 	
     /* When the player item has played to its end time we'll toggle
      the movie controller Pause button to be the Play button */
@@ -265,15 +252,15 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
          AVPlayer replaceCurrentItemWithPlayerItem: replacement will/did 
          occur.*/
         [player addObserver:self 
-                      forKeyPath:kCurrentItemKey 
-                         options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
-                         context:HSVideoCurrentItemObservationContext];
+                 forKeyPath:kCurrentItemKey 
+                    options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
+                    context:HSVideoCurrentItemObservationContext];
         
         /* Observe the AVPlayer "rate" property to update the scrubber control. */
         [player addObserver:self
-                      forKeyPath:kRateKey 
-                         options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
-                         context:HSVideoRateObserverContext];
+                 forKeyPath:kRateKey 
+                    options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
+                    context:HSVideoRateObserverContext];
     }
     
     /* Make our new AVPlayerItem the AVPlayer's current item. */
@@ -297,35 +284,30 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
         AVPlayerStatus status = [[change objectForKey:NSKeyValueChangeNewKey] integerValue];
         switch (status)
         {
-            /* Indicates that the status of the player is not yet known because 
-             it has not tried to load new media resources for playback */
+                /* Indicates that the status of the player is not yet known because 
+                 it has not tried to load new media resources for playback */
             case AVPlayerStatusUnknown:
             {
                 [self removePlayerTimeObserver];
                 [self syncScrubber];
                 
-                [IblTimeControl setEnabled:NO];
-                [IblPlay setEnabled:NO];
+                [timeControl setEnabled:NO];
+                //[IblPlay setEnabled:NO];
             }
                 break;
                 
             case AVPlayerStatusReadyToPlay:
             {
-                playerLayer = [AVPlayerLayer playerLayerWithPlayer:player];
-                [self.view.layer addSublayer:playerLayer];
-                playerLayer.frame = self.view.bounds;
-                playerLayer.backgroundColor = [[UIColor blackColor] CGColor];
+                [timeControl setEnabled:YES];
+                //[IblPlay setEnabled:YES];
                 
-                [IblTimeControl setEnabled:YES];
-                [IblPlay setEnabled:YES];
+                [upperControls setHidden:NO];
+                [lowerControls setHidden:NO];
                 
-                [IblUpperControls setHidden:NO];
-                [IblLowerControls setHidden:NO];
+                
+                [playbackView setPlayer:player];
                 
                 [self initScrubberTimer];
-                
-                [view bringSubviewToFront:IblUpperControls];
-                [view bringSubviewToFront:IblLowerControls];
                 
                 if (self.shouldAutoplay) {
                     [player play];
@@ -360,17 +342,13 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
         /* New player item null? */
         if (newPlayerItem == (id)[NSNull null])
         {            
-            [IblPlay setEnabled:NO];
-            [IblTimeControl setEnabled:NO];
+            //[IblPlay setEnabled:NO];
+            [timeControl setEnabled:NO];
             
         }
         else /* Replacement of player currentItem has occurred */
         {
-            /* Set the AVPlayer for which the player layer displays visual output. */
-            [playerLayer setPlayer:player];
-            
-            [playerLayer setVideoGravity:[self scalingMode]];
-            
+            [player replaceCurrentItemWithPlayerItem:playerItem];
             [self syncPlayPauseButtons];
         }
 	}
@@ -395,6 +373,5 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
     
 	return(kCMTimeInvalid);
 }
-
 
 @end

@@ -7,15 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9E011440148783BD00F6CDDC /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E011439148783BD00F6CDDC /* AppDelegate.m */; };
-		9E011441148783BD00F6CDDC /* ControlBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E01143B148783BD00F6CDDC /* ControlBar.m */; };
-		9E011442148783BD00F6CDDC /* HSVideoController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E01143D148783BD00F6CDDC /* HSVideoController.m */; };
-		9E011443148783BD00F6CDDC /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E01143F148783BD00F6CDDC /* ViewController.m */; };
-		9E011446148783D100F6CDDC /* HSVideoPlayer.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9E011444148783D100F6CDDC /* HSVideoPlayer.xib */; };
-		9E011447148783D100F6CDDC /* ViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9E011445148783D100F6CDDC /* ViewController.xib */; };
-		9E01144B148783D800F6CDDC /* fullscreen.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E011448148783D800F6CDDC /* fullscreen.png */; };
-		9E01144C148783D800F6CDDC /* pause.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E011449148783D800F6CDDC /* pause.png */; };
-		9E01144D148783D800F6CDDC /* play.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E01144A148783D800F6CDDC /* play.png */; };
+		9E5AD798148C077200A32FD5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5AD78F148C077200A32FD5 /* AppDelegate.m */; };
+		9E5AD799148C077200A32FD5 /* HSVideoController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5AD791148C077200A32FD5 /* HSVideoController.m */; };
+		9E5AD79A148C077200A32FD5 /* PlaybackView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5AD793148C077200A32FD5 /* PlaybackView.m */; };
+		9E5AD79B148C077200A32FD5 /* UpperControlBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5AD795148C077200A32FD5 /* UpperControlBar.m */; };
+		9E5AD79C148C077200A32FD5 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5AD797148C077200A32FD5 /* ViewController.m */; };
+		9E5AD79F148C078500A32FD5 /* HSVideoController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9E5AD79D148C078500A32FD5 /* HSVideoController.xib */; };
+		9E5AD7A0148C078500A32FD5 /* ViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9E5AD79E148C078500A32FD5 /* ViewController.xib */; };
+		9E5AD7A6148C078F00A32FD5 /* fullscreen.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E5AD7A1148C078F00A32FD5 /* fullscreen.png */; };
+		9E5AD7A7148C078F00A32FD5 /* pause.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E5AD7A2148C078F00A32FD5 /* pause.png */; };
+		9E5AD7A8148C078F00A32FD5 /* play.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E5AD7A3148C078F00A32FD5 /* play.png */; };
+		9E5AD7A9148C078F00A32FD5 /* volume-max.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E5AD7A4148C078F00A32FD5 /* volume-max.png */; };
+		9E5AD7AA148C078F00A32FD5 /* volume-min.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E5AD7A5148C078F00A32FD5 /* volume-min.png */; };
 		F61B38761486CCF100D95F55 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F61B38751486CCF100D95F55 /* CoreMedia.framework */; };
 		F61B38781486CCFC00D95F55 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F61B38771486CCFB00D95F55 /* AVFoundation.framework */; };
 		F6CE8C2C147E9915009D7FAF /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6CE8C2B147E9915009D7FAF /* UIKit.framework */; };
@@ -26,19 +29,23 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		9E011438148783BD00F6CDDC /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Classes/AppDelegate.h; sourceTree = "<group>"; };
-		9E011439148783BD00F6CDDC /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = Classes/AppDelegate.m; sourceTree = "<group>"; };
-		9E01143A148783BD00F6CDDC /* ControlBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ControlBar.h; path = Classes/ControlBar.h; sourceTree = "<group>"; };
-		9E01143B148783BD00F6CDDC /* ControlBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ControlBar.m; path = Classes/ControlBar.m; sourceTree = "<group>"; };
-		9E01143C148783BD00F6CDDC /* HSVideoController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HSVideoController.h; path = Classes/HSVideoController.h; sourceTree = "<group>"; };
-		9E01143D148783BD00F6CDDC /* HSVideoController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = HSVideoController.m; path = Classes/HSVideoController.m; sourceTree = "<group>"; };
-		9E01143E148783BD00F6CDDC /* ViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ViewController.h; path = Classes/ViewController.h; sourceTree = "<group>"; };
-		9E01143F148783BD00F6CDDC /* ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ViewController.m; path = Classes/ViewController.m; sourceTree = "<group>"; };
-		9E011444148783D100F6CDDC /* HSVideoPlayer.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = HSVideoPlayer.xib; path = Resources/HSVideoPlayer.xib; sourceTree = "<group>"; };
-		9E011445148783D100F6CDDC /* ViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = ViewController.xib; path = Resources/ViewController.xib; sourceTree = "<group>"; };
-		9E011448148783D800F6CDDC /* fullscreen.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = fullscreen.png; path = Resources/images/fullscreen.png; sourceTree = "<group>"; };
-		9E011449148783D800F6CDDC /* pause.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = pause.png; path = Resources/images/pause.png; sourceTree = "<group>"; };
-		9E01144A148783D800F6CDDC /* play.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = play.png; path = Resources/images/play.png; sourceTree = "<group>"; };
+		9E5AD78E148C077200A32FD5 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Classes/AppDelegate.h; sourceTree = "<group>"; };
+		9E5AD78F148C077200A32FD5 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = Classes/AppDelegate.m; sourceTree = "<group>"; };
+		9E5AD790148C077200A32FD5 /* HSVideoController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HSVideoController.h; path = Classes/HSVideoController.h; sourceTree = "<group>"; };
+		9E5AD791148C077200A32FD5 /* HSVideoController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = HSVideoController.m; path = Classes/HSVideoController.m; sourceTree = "<group>"; };
+		9E5AD792148C077200A32FD5 /* PlaybackView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlaybackView.h; path = Classes/PlaybackView.h; sourceTree = "<group>"; };
+		9E5AD793148C077200A32FD5 /* PlaybackView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PlaybackView.m; path = Classes/PlaybackView.m; sourceTree = "<group>"; };
+		9E5AD794148C077200A32FD5 /* UpperControlBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UpperControlBar.h; path = Classes/UpperControlBar.h; sourceTree = "<group>"; };
+		9E5AD795148C077200A32FD5 /* UpperControlBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = UpperControlBar.m; path = Classes/UpperControlBar.m; sourceTree = "<group>"; };
+		9E5AD796148C077200A32FD5 /* ViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ViewController.h; path = Classes/ViewController.h; sourceTree = "<group>"; };
+		9E5AD797148C077200A32FD5 /* ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ViewController.m; path = Classes/ViewController.m; sourceTree = "<group>"; };
+		9E5AD79D148C078500A32FD5 /* HSVideoController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = HSVideoController.xib; path = Resources/HSVideoController.xib; sourceTree = "<group>"; };
+		9E5AD79E148C078500A32FD5 /* ViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = ViewController.xib; path = Resources/ViewController.xib; sourceTree = "<group>"; };
+		9E5AD7A1148C078F00A32FD5 /* fullscreen.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = fullscreen.png; path = Resources/images/fullscreen.png; sourceTree = "<group>"; };
+		9E5AD7A2148C078F00A32FD5 /* pause.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = pause.png; path = Resources/images/pause.png; sourceTree = "<group>"; };
+		9E5AD7A3148C078F00A32FD5 /* play.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = play.png; path = Resources/images/play.png; sourceTree = "<group>"; };
+		9E5AD7A4148C078F00A32FD5 /* volume-max.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "volume-max.png"; path = "Resources/images/volume-max.png"; sourceTree = "<group>"; };
+		9E5AD7A5148C078F00A32FD5 /* volume-min.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "volume-min.png"; path = "Resources/images/volume-min.png"; sourceTree = "<group>"; };
 		F61B38751486CCF100D95F55 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		F61B38771486CCFB00D95F55 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		F6CE8C27147E9915009D7FAF /* hls.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = hls.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -70,9 +77,11 @@
 		F61B386F1486C9A800D95F55 /* images */ = {
 			isa = PBXGroup;
 			children = (
-				9E011448148783D800F6CDDC /* fullscreen.png */,
-				9E011449148783D800F6CDDC /* pause.png */,
-				9E01144A148783D800F6CDDC /* play.png */,
+				9E5AD7A1148C078F00A32FD5 /* fullscreen.png */,
+				9E5AD7A2148C078F00A32FD5 /* pause.png */,
+				9E5AD7A3148C078F00A32FD5 /* play.png */,
+				9E5AD7A4148C078F00A32FD5 /* volume-max.png */,
+				9E5AD7A5148C078F00A32FD5 /* volume-min.png */,
 			);
 			name = images;
 			sourceTree = "<group>";
@@ -80,8 +89,8 @@
 		F61B38741486C9B800D95F55 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				9E011444148783D100F6CDDC /* HSVideoPlayer.xib */,
-				9E011445148783D100F6CDDC /* ViewController.xib */,
+				9E5AD79D148C078500A32FD5 /* HSVideoController.xib */,
+				9E5AD79E148C078500A32FD5 /* ViewController.xib */,
 				F61B386F1486C9A800D95F55 /* images */,
 			);
 			name = Resources;
@@ -122,14 +131,16 @@
 		F6CE8C31147E9915009D7FAF /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				9E011438148783BD00F6CDDC /* AppDelegate.h */,
-				9E011439148783BD00F6CDDC /* AppDelegate.m */,
-				9E01143A148783BD00F6CDDC /* ControlBar.h */,
-				9E01143B148783BD00F6CDDC /* ControlBar.m */,
-				9E01143C148783BD00F6CDDC /* HSVideoController.h */,
-				9E01143D148783BD00F6CDDC /* HSVideoController.m */,
-				9E01143E148783BD00F6CDDC /* ViewController.h */,
-				9E01143F148783BD00F6CDDC /* ViewController.m */,
+				9E5AD78E148C077200A32FD5 /* AppDelegate.h */,
+				9E5AD78F148C077200A32FD5 /* AppDelegate.m */,
+				9E5AD790148C077200A32FD5 /* HSVideoController.h */,
+				9E5AD791148C077200A32FD5 /* HSVideoController.m */,
+				9E5AD792148C077200A32FD5 /* PlaybackView.h */,
+				9E5AD793148C077200A32FD5 /* PlaybackView.m */,
+				9E5AD794148C077200A32FD5 /* UpperControlBar.h */,
+				9E5AD795148C077200A32FD5 /* UpperControlBar.m */,
+				9E5AD796148C077200A32FD5 /* ViewController.h */,
+				9E5AD797148C077200A32FD5 /* ViewController.m */,
 			);
 			name = Classes;
 			path = hls;
@@ -199,11 +210,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				F6CE8C36147E9915009D7FAF /* InfoPlist.strings in Resources */,
-				9E011446148783D100F6CDDC /* HSVideoPlayer.xib in Resources */,
-				9E011447148783D100F6CDDC /* ViewController.xib in Resources */,
-				9E01144B148783D800F6CDDC /* fullscreen.png in Resources */,
-				9E01144C148783D800F6CDDC /* pause.png in Resources */,
-				9E01144D148783D800F6CDDC /* play.png in Resources */,
+				9E5AD79F148C078500A32FD5 /* HSVideoController.xib in Resources */,
+				9E5AD7A0148C078500A32FD5 /* ViewController.xib in Resources */,
+				9E5AD7A6148C078F00A32FD5 /* fullscreen.png in Resources */,
+				9E5AD7A7148C078F00A32FD5 /* pause.png in Resources */,
+				9E5AD7A8148C078F00A32FD5 /* play.png in Resources */,
+				9E5AD7A9148C078F00A32FD5 /* volume-max.png in Resources */,
+				9E5AD7AA148C078F00A32FD5 /* volume-min.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -215,10 +228,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				F6CE8C38147E9915009D7FAF /* main.m in Sources */,
-				9E011440148783BD00F6CDDC /* AppDelegate.m in Sources */,
-				9E011441148783BD00F6CDDC /* ControlBar.m in Sources */,
-				9E011442148783BD00F6CDDC /* HSVideoController.m in Sources */,
-				9E011443148783BD00F6CDDC /* ViewController.m in Sources */,
+				9E5AD798148C077200A32FD5 /* AppDelegate.m in Sources */,
+				9E5AD799148C077200A32FD5 /* HSVideoController.m in Sources */,
+				9E5AD79A148C077200A32FD5 /* PlaybackView.m in Sources */,
+				9E5AD79B148C077200A32FD5 /* UpperControlBar.m in Sources */,
+				9E5AD79C148C077200A32FD5 /* ViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
