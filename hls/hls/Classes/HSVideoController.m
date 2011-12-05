@@ -99,12 +99,6 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
     
 }
 
-/*- (void) setVideoURL:(NSURL *)url {
-    [self setVideoURL:url];
-    [self loadAssetAsync];
-}*/
-
-
 static NSString *timeStringForSeconds(Float64 seconds) {
     NSUInteger minutes = seconds / 60;
     NSUInteger secondsLeftOver = seconds - (minutes * 60);
@@ -190,6 +184,34 @@ static NSString *timeStringForSeconds(Float64 seconds) {
 		timeObserver = nil;
 	}
 }
+
+- (IBAction)togglePlaying:(id)sender {
+	if ([self isPlaying])
+    {
+		[self pause];
+    }
+	else
+    {
+		[self play];
+    }
+}
+
+- (void)play
+{    
+	[player play];
+    [self updatePlayPauseButton];  
+}
+
+- (void)pause
+{
+	[player pause];
+    [self updatePlayPauseButton];
+}
+
+/*- (void) setVideoURL:(NSURL *)url {
+ [self setVideoURL:url];
+ [self loadAssetAsync];
+ }*/
 
 @end
 
@@ -375,6 +397,7 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
             case AVPlayerStatusReadyToPlay:
             {
                 [timeControl setEnabled:YES];
+                [playButton setEnabled:YES];
                 
                 [upperControls setHidden:NO];
                 [lowerControls setHidden:NO];

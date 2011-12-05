@@ -51,7 +51,9 @@ typedef NSInteger HSVideoFinishReason;
 @property(nonatomic, copy) NSString *scalingMode;
 
 - (id)initWithContentURL:(NSURL *)url;
-//- (void)setFullscreen:(BOOL)fullscreen animated:(BOOL)animated;
+- (void)setFullscreen:(BOOL)fullscreen animated:(BOOL)animated;
+- (void)play;
+- (void)pause;
 
 @end
 
