@@ -23,7 +23,7 @@
 {
     [super viewDidLoad];
     
-    NSURL *test = [[NSURL alloc] initWithString:@"http://devimages.apple.com/samplecode/adDemo/ad.m3u8"];
+    NSURL *test = [[NSURL alloc] initWithString:@"http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8"];
     HSVideoController *video = [[HSVideoController alloc] initWithContentURL:test];
     
     video.view.frame = view2.bounds;

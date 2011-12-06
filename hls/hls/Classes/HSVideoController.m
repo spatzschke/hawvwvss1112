@@ -96,7 +96,6 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
     [self loadAssetAsync];
     
     [super viewDidLoad];
-    
 }
 
 static NSString *timeStringForSeconds(Float64 seconds) {
@@ -169,8 +168,8 @@ static NSString *timeStringForSeconds(Float64 seconds) {
                      ^(CMTime time) 
                      {
                          [self updateTimeScrubber];
-                         [self updateTimeElapsed]; // ??
-                         [self updateTimeRemaining]; // ??
+                         [self updateTimeElapsed];
+                         [self updateTimeRemaining];
                      }] retain];
 }
 
@@ -183,17 +182,6 @@ static NSString *timeStringForSeconds(Float64 seconds) {
 		[timeObserver release];
 		timeObserver = nil;
 	}
-}
-
-- (IBAction)togglePlaying:(id)sender {
-	if ([self isPlaying])
-    {
-		[self pause];
-    }
-	else
-    {
-		[self play];
-    }
 }
 
 - (void)play
@@ -212,6 +200,97 @@ static NSString *timeStringForSeconds(Float64 seconds) {
  [self setVideoURL:url];
  [self loadAssetAsync];
  }*/
+
+#pragma mark -
+#pragma mark Actions
+
+- (IBAction)togglePlaying:(id)sender {
+	if ([self isPlaying])
+    {
+		[self pause];
+    }
+	else
+    {
+		[self play];
+    }
+}
+
+- (IBAction)beginScrubbing:(id)sender
+{
+	rateToRestoreAfterScrubbing = [player rate];
+    playerDuration = [self durationInSeconds];
+	[player setRate:0.f];
+	
+	/* Remove previous timer. */
+	[self removeTimeObserver];
+}
+
+- (IBAction)endScrubbing:(id)sender
+{    
+	if (!timeObserver)
+	{
+        Float64 duration = [self durationInSeconds];
+        
+        if (duration < 0.01) {
+            return;
+        } 
+		
+		if (isfinite(duration))
+		{
+			CGFloat width = CGRectGetWidth([timeControl bounds]);
+			double tolerance = 0.5f * duration / width;
+            
+            //eventuell auslagern da doppelt
+			timeObserver = [[player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(tolerance, NSEC_PER_SEC) queue:dispatch_get_main_queue() usingBlock:
+                             ^(CMTime time)
+                             {
+                                 [self updateTimeScrubber];
+                                 [self updateTimeElapsed];
+                                 [self updateTimeRemaining];
+                             }] retain];
+		}
+	}
+    
+	if (rateToRestoreAfterScrubbing)
+	{
+		[player setRate:rateToRestoreAfterScrubbing];
+		rateToRestoreAfterScrubbing = 0.f;
+	}
+}
+
+/* Set the player current time to match the scrubber position. */
+- (IBAction)scrubValueChanged:(id)sender
+{
+	if ([sender isKindOfClass:[UISlider class]])
+	{
+		UISlider* slider = sender;
+		
+		Float64 duration = [self durationInSeconds];
+        
+        if (duration < 0.01) {
+            return;
+        }
+		
+		if (isfinite(duration))
+		{
+			float minValue = [slider minimumValue];
+			float maxValue = [slider maximumValue];
+			float value = [slider value];
+			
+			Float64 elapsed = duration * (value - minValue) / (maxValue - minValue);
+            Float64 remaining = duration - elapsed;
+			
+			//[player seekToTime:CMTimeMakeWithSeconds(time, NSEC_PER_SEC)];
+            
+            [player seekToTime:CMTimeMakeWithSeconds(elapsed  , NSEC_PER_SEC) 
+               toleranceBefore:kCMTimeZero 
+                toleranceAfter:kCMTimeZero];
+
+            timeElapsed.text = timeStringForSeconds(elapsed);
+            timeRemaining.text = [NSString stringWithFormat:@"-%@", timeStringForSeconds(remaining)];   
+		}
+	}
+}
 
 @end
 

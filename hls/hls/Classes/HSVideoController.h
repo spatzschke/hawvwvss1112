@@ -34,6 +34,9 @@ typedef NSInteger HSVideoFinishReason;
     IBOutlet UISlider *volumeControl;
     IBOutlet UIButton *playButton;
     
+    float rateToRestoreAfterScrubbing;
+    Float64 playerDuration;
+    
     id timeObserver;
     
 @public
