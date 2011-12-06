@@ -34,6 +34,9 @@ typedef NSInteger HSVideoFinishReason;
     IBOutlet UISlider *volumeControl;
     IBOutlet UIButton *playButton;
     
+    float rateToRestoreAfterScrubbing;
+    Float64 playerDuration;
+    
     id timeObserver;
     
 @public
@@ -51,7 +54,9 @@ typedef NSInteger HSVideoFinishReason;
 @property(nonatomic, copy) NSString *scalingMode;
 
 - (id)initWithContentURL:(NSURL *)url;
-//- (void)setFullscreen:(BOOL)fullscreen animated:(BOOL)animated;
+- (void)setFullscreen:(BOOL)fullscreen animated:(BOOL)animated;
+- (void)play;
+- (void)pause;
 
 @end
 

@@ -45,7 +45,7 @@
 						<array class="NSMutableArray" key="NSSubviews">
 							<object class="IBUIToolbar" id="19262554">
 								<reference key="NSNextResponder" ref="414562579"/>
-								<int key="NSvFlags">290</int>
+								<int key="NSvFlags">-2147483358</int>
 								<array class="NSMutableArray" key="NSSubviews">
 									<object class="IBUIView" id="144964590">
 										<reference key="NSNextResponder" ref="19262554"/>
@@ -68,7 +68,7 @@
 												<int key="IBUIContentMode">7</int>
 												<bool key="IBUIUserInteractionEnabled">NO</bool>
 												<string key="targetRuntimeIdentifier">IBIPadFramework</string>
-												<string key="IBUIText">100:00</string>
+												<string key="IBUIText">00:00</string>
 												<object class="NSColor" key="IBUITextColor" id="832613395">
 													<int key="NSColorSpace">3</int>
 													<bytes key="NSWhite">MQA</bytes>
@@ -132,7 +132,7 @@
 												<int key="IBUIContentMode">7</int>
 												<bool key="IBUIUserInteractionEnabled">NO</bool>
 												<string key="targetRuntimeIdentifier">IBIPadFramework</string>
-												<string key="IBUIText">-100:00</string>
+												<string key="IBUIText">-00:00</string>
 												<reference key="IBUITextColor" ref="832613395"/>
 												<nil key="IBUIHighlightedColor"/>
 												<int key="IBUIBaselineAdjustment">1</int>
@@ -190,7 +190,7 @@
 							</object>
 							<object class="IBUIView" id="52973637">
 								<reference key="NSNextResponder" ref="414562579"/>
-								<int key="NSvFlags">269</int>
+								<int key="NSvFlags">-2147483379</int>
 								<array class="NSMutableArray" key="NSSubviews">
 									<object class="IBUIButton" id="233224783">
 										<reference key="NSNextResponder" ref="52973637"/>
@@ -260,6 +260,7 @@
 										<string key="NSFrame">{{18, 39}, {207, 23}}</string>
 										<reference key="NSSuperview" ref="52973637"/>
 										<reference key="NSWindow"/>
+										<reference key="NSNextKeyView"/>
 										<string key="NSReuseIdentifierKey">_NS:624</string>
 										<bool key="IBUIOpaque">NO</bool>
 										<string key="targetRuntimeIdentifier">IBIPadFramework</string>
@@ -296,9 +297,9 @@
 						<reference key="NSWindow"/>
 						<reference key="NSNextKeyView" ref="19262554"/>
 						<string key="NSReuseIdentifierKey">_NS:212</string>
-						<object class="NSColor" key="IBUIBackgroundColor">
-							<int key="NSColorSpace">2</int>
-							<bytes key="NSRGB">MC45NjA3ODQzNzU3IDAuMDAzOTIxNTY4ODU5IDAAA</bytes>
+						<object class="NSColor" key="IBUIBackgroundColor" id="137944293">
+							<int key="NSColorSpace">3</int>
+							<bytes key="NSWhite">MAA</bytes>
 						</object>
 						<string key="targetRuntimeIdentifier">IBIPadFramework</string>
 					</object>
@@ -307,10 +308,7 @@
 				<reference key="NSSuperview"/>
 				<reference key="NSWindow"/>
 				<reference key="NSNextKeyView" ref="414562579"/>
-				<object class="NSColor" key="IBUIBackgroundColor">
-					<int key="NSColorSpace">3</int>
-					<bytes key="NSWhite">MAA</bytes>
-				</object>
+				<reference key="IBUIBackgroundColor" ref="137944293"/>
 				<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
 				<string key="targetRuntimeIdentifier">IBIPadFramework</string>
 			</object>
@@ -388,6 +386,60 @@
 						<reference key="destination" ref="185882739"/>
 					</object>
 					<int key="connectionID">34</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchEventConnection" key="connection">
+						<string key="label">beginScrubbing:</string>
+						<reference key="source" ref="659486186"/>
+						<reference key="destination" ref="841351856"/>
+						<int key="IBEventType">1</int>
+					</object>
+					<int key="connectionID">38</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchEventConnection" key="connection">
+						<string key="label">scrubValueChanged:</string>
+						<reference key="source" ref="659486186"/>
+						<reference key="destination" ref="841351856"/>
+						<int key="IBEventType">3</int>
+					</object>
+					<int key="connectionID">39</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchEventConnection" key="connection">
+						<string key="label">scrubValueChanged:</string>
+						<reference key="source" ref="659486186"/>
+						<reference key="destination" ref="841351856"/>
+						<int key="IBEventType">13</int>
+					</object>
+					<int key="connectionID">42</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchEventConnection" key="connection">
+						<string key="label">endScrubbing:</string>
+						<reference key="source" ref="659486186"/>
+						<reference key="destination" ref="841351856"/>
+						<int key="IBEventType">7</int>
+					</object>
+					<int key="connectionID">46</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchEventConnection" key="connection">
+						<string key="label">endScrubbing:</string>
+						<reference key="source" ref="659486186"/>
+						<reference key="destination" ref="841351856"/>
+						<int key="IBEventType">8</int>
+					</object>
+					<int key="connectionID">47</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchEventConnection" key="connection">
+						<string key="label">togglePlaying:</string>
+						<reference key="source" ref="233224783"/>
+						<reference key="destination" ref="841351856"/>
+						<int key="IBEventType">7</int>
+					</object>
+					<int key="connectionID">37</int>
 				</object>
 			</array>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -566,7 +618,7 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">34</int>
+			<int key="maxID">47</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
