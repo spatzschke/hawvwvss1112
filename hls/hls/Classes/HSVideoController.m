@@ -48,8 +48,11 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
     self = [super init];
     if (self)
     {
-        self.videoURL = [url retain];
+        isFullscreen = NO;
+        isScrubbing = NO;
+        
         self.shouldAutoplay = YES;
+        [self setVideoURL:url];
     }
     
     return self;
@@ -66,7 +69,7 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
                                                   object:nil];
     
     [player removeObserver:self forKeyPath:kCurrentItemKey];
-    //[playerItem removeObserver:self forKeyPath:kStatusKey];
+    [playerItem removeObserver:self forKeyPath:kStatusKey];
     [player removeObserver:self forKeyPath:kRateKey];
     
     [player release];
@@ -129,8 +132,23 @@ static NSString *timeStringForSeconds(Float64 seconds) {
     [playButton setImage:buttonImage forState:UIControlStateNormal];
 }
 
+- (IBAction)updateFullscreenButton 
+{
+    UIImage *buttonImage = nil;
+    
+    if (isFullscreen) {
+        buttonImage = [UIImage imageNamed:@"fullscreen"]; 
+    }
+    else {
+        buttonImage = [UIImage imageNamed:@"fullscreen"];
+    }
+    
+    [fullscreenButton setImage:buttonImage forState:UIControlStateNormal];
+}
+
+
 - (void)updateTimeScrubber
-{    
+{
     Float64 duration = [self durationInSeconds];
     	
 	if (isfinite(duration) && (duration > 0))
@@ -160,9 +178,9 @@ static NSString *timeStringForSeconds(Float64 seconds) {
 		CGFloat width = CGRectGetWidth([timeControl bounds]);
 		interval = 0.5f * duration / width;
     }
-    
+
 	/* Update the scrubber during normal playback. */
-	timeObserver = [[player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(interval, NSEC_PER_SEC) 
+	timeObserver = [[player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(1.0, NSEC_PER_SEC) 
                                                          queue:NULL 
                                                     usingBlock:
                      ^(CMTime time) 
@@ -196,10 +214,53 @@ static NSString *timeStringForSeconds(Float64 seconds) {
     [self updatePlayPauseButton];
 }
 
-/*- (void) setVideoURL:(NSURL *)url {
- [self setVideoURL:url];
- [self loadAssetAsync];
- }*/
+-(void)setFullscreen:(BOOL)fullscreen
+{    
+    if (fullscreen) 
+    {
+        CGRect frame = [playbackView.window
+                            convertRect:playbackView.frame
+                            fromView:self.view];
+		[playbackView.window addSubview:playbackView];
+		playbackView.frame = frame;
+        
+        [UIView
+            animateWithDuration:0.4 
+            animations:^{
+                 playbackView.frame = playbackView.window.bounds;
+            }];
+    }
+    else 
+    {
+        CGRect frame = [self.view
+                        convertRect:playbackView.frame
+                        fromView:playbackView.window];
+		playbackView.frame = frame;
+        [self.view addSubview:playbackView];
+        
+        [UIView
+            animateWithDuration:0.4 
+            animations:^{
+                playbackView.frame = self.view.frame;
+            }];
+    }
+    
+    [[UIApplication sharedApplication] 
+        setStatusBarHidden:fullscreen
+        withAnimation:UIStatusBarAnimationFade];
+    
+    isFullscreen = fullscreen;
+    [self updateFullscreenButton];
+}
+
+-(void)setVideoURL:(NSURL *)url {
+    if (videoURL) {
+        [videoURL release];
+        videoURL = nil;
+    }
+    videoURL = [url copy];
+    [self loadAssetAsync];
+}
 
 #pragma mark -
 #pragma mark Actions
@@ -215,18 +276,23 @@ static NSString *timeStringForSeconds(Float64 seconds) {
     }
 }
 
+- (IBAction)toggleFullscreen:(id)sender
+{
+    [self setFullscreen:!isFullscreen];
+}
+
 - (IBAction)beginScrubbing:(id)sender
 {
 	rateToRestoreAfterScrubbing = [player rate];
-    playerDuration = [self durationInSeconds];
+    isScrubbing = YES;
 	[player setRate:0.f];
-	
+    
 	/* Remove previous timer. */
 	[self removeTimeObserver];
 }
 
 - (IBAction)endScrubbing:(id)sender
-{    
+{
 	if (!timeObserver)
 	{
         Float64 duration = [self durationInSeconds];
@@ -237,17 +303,17 @@ static NSString *timeStringForSeconds(Float64 seconds) {
 		
 		if (isfinite(duration))
 		{
-			CGFloat width = CGRectGetWidth([timeControl bounds]);
-			double tolerance = 0.5f * duration / width;
+			//CGFloat width = CGRectGetWidth([timeControl bounds]);
+			//double tolerance = 0.5f * duration / width;
             
             //eventuell auslagern da doppelt
-			timeObserver = [[player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(tolerance, NSEC_PER_SEC) queue:dispatch_get_main_queue() usingBlock:
+			/*timeObserver = [[player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(1.0, NSEC_PER_SEC) queue:dispatch_get_main_queue() usingBlock:
                              ^(CMTime time)
                              {
                                  [self updateTimeScrubber];
                                  [self updateTimeElapsed];
                                  [self updateTimeRemaining];
-                             }] retain];
+                             }] retain];*/
 		}
 	}
     
@@ -255,6 +321,7 @@ static NSString *timeStringForSeconds(Float64 seconds) {
 	{
 		[player setRate:rateToRestoreAfterScrubbing];
 		rateToRestoreAfterScrubbing = 0.f;
+        isScrubbing = NO;
 	}
 }
 
@@ -280,11 +347,9 @@ static NSString *timeStringForSeconds(Float64 seconds) {
 			Float64 elapsed = duration * (value - minValue) / (maxValue - minValue);
             Float64 remaining = duration - elapsed;
 			
-			//[player seekToTime:CMTimeMakeWithSeconds(time, NSEC_PER_SEC)];
-            
-            [player seekToTime:CMTimeMakeWithSeconds(elapsed  , NSEC_PER_SEC) 
+			[player seekToTime:CMTimeMakeWithSeconds(elapsed, NSEC_PER_SEC) 
                toleranceBefore:kCMTimeZero 
-                toleranceAfter:kCMTimeZero];
+                toleranceAfter:kCMTimePositiveInfinity];
 
             timeElapsed.text = timeStringForSeconds(elapsed);
             timeRemaining.text = [NSString stringWithFormat:@"-%@", timeStringForSeconds(remaining)];   
@@ -387,7 +452,7 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
     
     if (!asset.playable)
     {
-        [self assetFailedToPrepareForPlayback];       
+        [self assetFailedToPrepareForPlayback];    
         return;
     }
 	
@@ -475,6 +540,11 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
                 
             case AVPlayerStatusReadyToPlay:
             {
+                if (isScrubbing) 
+                {
+                    return;
+                }
+                
                 [timeControl setEnabled:YES];
                 [playButton setEnabled:YES];
                 
@@ -501,6 +571,10 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
 	/* AVPlayer "rate" property value observer. */
 	else if (context == HSVideoRateObserverContext)
 	{
+        if (isScrubbing) 
+        {
+            return;
+        }
         [self updatePlayPauseButton];
 	}
 	/* AVPlayer "currentItem" property observer. 
