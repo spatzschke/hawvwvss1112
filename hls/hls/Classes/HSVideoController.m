@@ -214,7 +214,7 @@ static NSString *timeStringForSeconds(Float64 seconds) {
     [self updatePlayPauseButton];
 }
 
--(void)setFullscreen:(BOOL)fullscreen animated:(BOOL)animated 
+-(void)setFullscreen:(BOOL)fullscreen
 {    
     if (fullscreen) 
     {
@@ -278,7 +278,7 @@ static NSString *timeStringForSeconds(Float64 seconds) {
 
 - (IBAction)toggleFullscreen:(id)sender
 {
-    [self setFullscreen:!isFullscreen animated:NO];
+    [self setFullscreen:!isFullscreen];
 }
 
 - (IBAction)beginScrubbing:(id)sender
