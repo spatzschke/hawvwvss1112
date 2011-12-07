@@ -18,3 +18,4 @@ build/*
 *.xcworkspace
 xcuserdata
 hls.xcodeproj/project.xcworkspace/xcuserdata/Stan.xcuserdatad/UserInterfaceState.xcuserstate
+videos/
