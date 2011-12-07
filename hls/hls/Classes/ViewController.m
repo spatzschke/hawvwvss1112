@@ -27,7 +27,7 @@
     HSVideoController *video = [[HSVideoController alloc] initWithContentURL:test];
     
     video.view.frame = view2.bounds;
-    video.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    //video.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     
     [view2 addSubview:video.view];
 	// Do any additional setup after loading the view, typically from a nib.

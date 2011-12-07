@@ -132,6 +132,21 @@ static NSString *timeStringForSeconds(Float64 seconds) {
     [playButton setImage:buttonImage forState:UIControlStateNormal];
 }
 
+- (IBAction)updateFullscreenButton 
+{
+    UIImage *buttonImage = nil;
+    
+    if (isFullscreen) {
+        buttonImage = [UIImage imageNamed:@"fullscreen"]; 
+    }
+    else {
+        buttonImage = [UIImage imageNamed:@"fullscreen"];
+    }
+    
+    [fullscreenButton setImage:buttonImage forState:UIControlStateNormal];
+}
+
+
 - (void)updateTimeScrubber
 {
     Float64 duration = [self durationInSeconds];
@@ -199,26 +214,43 @@ static NSString *timeStringForSeconds(Float64 seconds) {
     [self updatePlayPauseButton];
 }
 
--(void)setFullscreen:(BOOL)fullscreen animated:(BOOL)animated {
-    isFullscreen = !isFullscreen;
+-(void)setFullscreen:(BOOL)fullscreen animated:(BOOL)animated 
+{    
+    if (fullscreen) 
+    {
+        CGRect frame = [playbackView.window
+                            convertRect:playbackView.frame
+                            fromView:self.view];
+		[playbackView.window addSubview:playbackView];
+		playbackView.frame = frame;
+        
+        [UIView
+            animateWithDuration:0.4 
+            animations:^{
+                 playbackView.frame = playbackView.window.bounds;
+            }];
+    }
+    else 
+    {
+        CGRect frame = [self.view
+                        convertRect:playbackView.frame
+                        fromView:playbackView.window];
+		playbackView.frame = frame;
+        [self.view addSubview:playbackView];
+        
+        [UIView
+            animateWithDuration:0.4 
+            animations:^{
+                playbackView.frame = self.view.frame;
+            }];
+    }
     
     [[UIApplication sharedApplication] 
-        setStatusBarHidden:isFullscreen 
-            withAnimation:UIStatusBarAnimationFade];
+        setStatusBarHidden:fullscreen
+        withAnimation:UIStatusBarAnimationFade];
     
-   
-    [UIView beginAnimations:@"Fullscreen" context:nil];
-    [UIView setAnimationBeginsFromCurrentState:YES];
-
-    //Wie zum MainScreen hinzufügen ?? STAN HILFEEEEEEEEEEE!
-    [playbackView removeFromSuperview];
-    [[self view] addSubview:playbackView];
-    
-    playbackView.frame = [[UIScreen mainScreen] applicationFrame];
-    
-    [UIView setAnimationDuration:.3];
-    
-    [UIView commitAnimations];
+    isFullscreen = fullscreen;
+    [self updateFullscreenButton];
 }
 
 -(void)setVideoURL:(NSURL *)url {
@@ -244,9 +276,9 @@ static NSString *timeStringForSeconds(Float64 seconds) {
     }
 }
 
-- (IBAction)testaa:(id)sender
+- (IBAction)toggleFullscreen:(id)sender
 {
-    [self setFullscreen:YES animated:NO];
+    [self setFullscreen:!isFullscreen animated:NO];
 }
 
 - (IBAction)beginScrubbing:(id)sender

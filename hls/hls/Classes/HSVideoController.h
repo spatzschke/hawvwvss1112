@@ -33,6 +33,7 @@ typedef NSInteger HSVideoFinishReason;
     IBOutlet UISlider *timeControl;
     IBOutlet UISlider *volumeControl;
     IBOutlet UIButton *playButton;
+    IBOutlet UIButton *fullscreenButton;
     
     float rateToRestoreAfterScrubbing;
     BOOL isFullscreen;
