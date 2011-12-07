@@ -35,7 +35,8 @@ typedef NSInteger HSVideoFinishReason;
     IBOutlet UIButton *playButton;
     
     float rateToRestoreAfterScrubbing;
-    Float64 playerDuration;
+    BOOL isFullscreen;
+    BOOL isScrubbing;
     
     id timeObserver;
     
