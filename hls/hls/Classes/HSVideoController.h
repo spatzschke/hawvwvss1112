@@ -38,6 +38,7 @@ typedef NSInteger HSVideoFinishReason;
     float rateToRestoreAfterScrubbing;
     BOOL isFullscreen;
     BOOL isScrubbing;
+    BOOL firstPlayback;
     
     id timeObserver;
     

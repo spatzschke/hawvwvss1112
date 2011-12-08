@@ -50,6 +50,7 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
     {
         isFullscreen = NO;
         isScrubbing = NO;
+        firstPlayback = YES;
         
         self.shouldAutoplay = YES;
         [self setVideoURL:url];
@@ -94,9 +95,11 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
 
 -(void) viewDidLoad {
     
-    [timeControl setValue:0.0];
-    
-    [self loadAssetAsync];
+    // Add lowerControls Rounded Corners and a white Border
+    lowerControls.layer.borderColor = [[UIColor whiteColor] CGColor];
+    lowerControls.layer.borderWidth = 2.3;
+    lowerControls.layer.cornerRadius = 15;
+    [lowerControls.layer setMasksToBounds:YES];
     
     [super viewDidLoad];
 }
@@ -157,38 +160,26 @@ static NSString *timeStringForSeconds(Float64 seconds) {
 		float maxValue = [timeControl maximumValue];
 		Float64 currentTime = [self currentTimeInSeconds];
         
-		[timeControl setValue:(maxValue - minValue) * currentTime / duration + minValue];
+		[timeControl setValue:(maxValue - minValue) * currentTime / duration + minValue];        
 	}
     else {
         timeControl.minimumValue = 0.0;
     }
 }
 
--(void)initTimeScrubber
+-(void)addTimeObserver
 {
-	double interval = .1f;
-	Float64 duration = [self durationInSeconds];
-    
-    if (duration < 0.01) {
-        return;
+    if (!timeObserver) {
+        timeObserver = [[player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(1.0, NSEC_PER_SEC) 
+                                                             queue:NULL 
+                                                        usingBlock:
+                         ^(CMTime time) 
+                         {
+                             [self updateTimeScrubber];
+                             [self updateTimeElapsed];
+                             [self updateTimeRemaining];
+                         }] retain];
     }
-    
-	if (isfinite(duration))
-	{
-		CGFloat width = CGRectGetWidth([timeControl bounds]);
-		interval = 0.5f * duration / width;
-    }
-
-	/* Update the scrubber during normal playback. */
-	timeObserver = [[player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(1.0, NSEC_PER_SEC) 
-                                                         queue:NULL 
-                                                    usingBlock:
-                     ^(CMTime time) 
-                     {
-                         [self updateTimeScrubber];
-                         [self updateTimeElapsed];
-                         [self updateTimeRemaining];
-                     }] retain];
 }
 
 /* Cancels the previously registered time observer. */
@@ -292,30 +283,8 @@ static NSString *timeStringForSeconds(Float64 seconds) {
 }
 
 - (IBAction)endScrubbing:(id)sender
-{
-	if (!timeObserver)
-	{
-        Float64 duration = [self durationInSeconds];
-        
-        if (duration < 0.01) {
-            return;
-        } 
-		
-		if (isfinite(duration))
-		{
-			//CGFloat width = CGRectGetWidth([timeControl bounds]);
-			//double tolerance = 0.5f * duration / width;
-            
-            //eventuell auslagern da doppelt
-			/*timeObserver = [[player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(1.0, NSEC_PER_SEC) queue:dispatch_get_main_queue() usingBlock:
-                             ^(CMTime time)
-                             {
-                                 [self updateTimeScrubber];
-                                 [self updateTimeElapsed];
-                                 [self updateTimeRemaining];
-                             }] retain];*/
-		}
-	}
+{ 
+    [self addTimeObserver];
     
 	if (rateToRestoreAfterScrubbing)
 	{
@@ -392,7 +361,7 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
      Create an asset for inspection of a resource referenced by a given URL.
      Load the values for the asset keys "tracks", "playable".
      */
-    AVURLAsset *asset = [AVURLAsset URLAssetWithURL:videoURL options:nil];
+    AVURLAsset *asset = [AVURLAsset URLAssetWithURL:self.videoURL options:nil];
     
     NSArray *requestedKeys = [NSArray arrayWithObjects:kTracksKey, kPlayableKey, nil];
     
@@ -540,24 +509,24 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
                 
             case AVPlayerStatusReadyToPlay:
             {
-                if (isScrubbing) 
-                {
-                    return;
+                if (firstPlayback) {
+                
+                    [timeControl setEnabled:YES];
+                    [playButton setEnabled:YES];
+                
+                    [upperControls setHidden:NO];
+                    [lowerControls setHidden:NO];
+                
+                    [playbackView setPlayer:player];
+                
+                    [self addTimeObserver];
+                
+                    if (self.shouldAutoplay) {
+                        [player play];
+                    }
+                    
+                    firstPlayback = NO;
                 }
-                
-                [timeControl setEnabled:YES];
-                [playButton setEnabled:YES];
-                
-                [upperControls setHidden:NO];
-                [lowerControls setHidden:NO];
-                
-                [playbackView setPlayer:player];
-                
-                [self initTimeScrubber];
-                
-                if (self.shouldAutoplay) {
-                   [player play];
-                } 
             }
                 break;
                 
