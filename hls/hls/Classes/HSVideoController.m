@@ -53,6 +53,7 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
         firstPlayback = YES;
         
         self.shouldAutoplay = YES;
+        self.scalingMode = @"AVLayerVideoGravityResizeAspect";
         [self setVideoURL:url];
     }
     
@@ -139,7 +140,7 @@ static NSString *timeStringForSeconds(Float64 seconds) {
     [playButton setImage:buttonImage forState:UIControlStateNormal];
 }
 
-- (IBAction)updateFullscreenButton 
+- (IBAction)updateFullscreenButton
 {
     UIImage *buttonImage = nil;
     
@@ -523,9 +524,9 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
                 
                     [upperControls setHidden:NO];
                     [lowerControls setHidden:NO];
-                    [loadingIndicator stopAnimating];
                 
                     [playbackView setPlayer:player];
+                    [playbackView setVideoFillMode:[self scalingMode]];
                 
                     [self addTimeObserver];
                 
@@ -535,6 +536,7 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
                     
                     firstPlayback = NO;
                 }
+                [loadingIndicator stopAnimating];
             }
                 break;
                 

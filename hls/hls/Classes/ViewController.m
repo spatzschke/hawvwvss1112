@@ -23,7 +23,7 @@
 {
     [super viewDidLoad];
     
-    NSURL *test = [[NSURL alloc] initWithString:@"http://127.0.0.1/~Sebastian/WiFi/prog_index.m3u8"];
+    NSURL *test = [[NSURL alloc] initWithString:@"http://192.168.1.3/~Sebastian/WiFi/prog_index.m3u8"];
     HSVideoController *video = [[HSVideoController alloc] initWithContentURL:test];
     
     video.view.frame = view2.bounds;

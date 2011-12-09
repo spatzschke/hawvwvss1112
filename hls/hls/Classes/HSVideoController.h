@@ -25,6 +25,11 @@ typedef NSInteger HSVideoFinishReason;
     AVPlayer *player;
     AVPlayerItem *playerItem;
     
+    float rateToRestoreAfterScrubbing;
+    BOOL isFullscreen;
+    BOOL isScrubbing;
+    BOOL firstPlayback;
+    
     IBOutlet PlaybackView *playbackView;
     IBOutlet UpperControlBar *upperControls;
     IBOutlet UIView *lowerControls;
@@ -36,12 +41,8 @@ typedef NSInteger HSVideoFinishReason;
     IBOutlet UIButton *fullscreenButton;
     IBOutlet UIActivityIndicatorView *loadingIndicator;
     
-    float rateToRestoreAfterScrubbing;
-    BOOL isFullscreen;
-    BOOL isScrubbing;
-    BOOL firstPlayback;
-    
     id timeObserver;
+    NSTimer *hideControlsTimer;
     
 @public
     
@@ -54,7 +55,7 @@ typedef NSInteger HSVideoFinishReason;
 // likely to finish uninterrupted based on e.g. network conditions. Defaults to NO.
 @property(nonatomic) BOOL shouldAutoplay;
 
-// Determines how the content scales to fit the view. Defaults to MPMovieScalingModeAspectFit.
+// Determines how the content scales to fit the view. Defaults to AVLayerVideoGravityResizeAspect.
 @property(nonatomic, copy) NSString *scalingMode;
 
 - (id)initWithContentURL:(NSURL *)url;
