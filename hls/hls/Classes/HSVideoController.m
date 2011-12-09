@@ -87,6 +87,7 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
     [timeControl release];
     [volumeControl release];
     [playButton release];
+    [loadingIndicator release];
     
     [super dealloc];
 }
@@ -100,6 +101,9 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
     lowerControls.layer.borderWidth = 2.3;
     lowerControls.layer.cornerRadius = 15;
     [lowerControls.layer setMasksToBounds:YES];
+    
+    // Start loading indicator
+    [loadingIndicator startAnimating];
     
     [super viewDidLoad];
 }
@@ -504,6 +508,8 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
                 
                 [timeControl setEnabled:NO];
                 [playButton setEnabled:NO];
+                [fullscreenButton setEnabled:NO];
+                [loadingIndicator startAnimating];
             }
                 break;
                 
@@ -513,9 +519,11 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
                 
                     [timeControl setEnabled:YES];
                     [playButton setEnabled:YES];
+                    [fullscreenButton setEnabled:YES];
                 
                     [upperControls setHidden:NO];
                     [lowerControls setHidden:NO];
+                    [loadingIndicator stopAnimating];
                 
                     [playbackView setPlayer:player];
                 
