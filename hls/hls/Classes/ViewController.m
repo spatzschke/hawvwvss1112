@@ -7,7 +7,7 @@
 //
 
 #import "ViewController.h"
-#import "HSVideoController.h"
+#import "HSVideoViewController.h"
 
 @implementation ViewController
 
@@ -23,12 +23,10 @@
 {
     [super viewDidLoad];
     
-    NSURL *test = [[NSURL alloc] initWithString:@"http://192.168.1.3/~Sebastian/WiFi/prog_index.m3u8"];
-    HSVideoController *video = [[HSVideoController alloc] initWithContentURL:test];
-    
+    NSURL *test = [[NSURL alloc] initWithString:@"http://192.168.1.2/~Sebastian/WiFi/prog_index.m3u8"];
+    HSVideoViewController *video = [[HSVideoViewController alloc] initWithContentURL:test];
+    [video setShouldAutoplay:YES];
     video.view.frame = view2.bounds;
-    //video.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    
     [view2 addSubview:video.view];
 	// Do any additional setup after loading the view, typically from a nib.
 }
