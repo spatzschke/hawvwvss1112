@@ -1,22 +1,26 @@
-//
-//  HSVideoController.m
-//  HLVideo
-//
-//  Created by Sebastian Schuler on 04.12.11.
-//  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
-//
+/**
+ * HSVideoViewController.h
+ * 
+ * Manages the playback of a movie from a network stream.
+ *
+ * Copyright 2011 
+ *   - Sebastian Schuler
+ *   - Jennifer Schoendorf
+ *   - Stan Patzschke
+ */
 
-#import "HSVideoController.h"
+#import "HSVideoViewController.h"
 
+// Key path
 NSString *const kTracksKey          = @"tracks";
 NSString *const kStatusKey          = @"status";
 NSString *const kRateKey			= @"rate";
 NSString *const kPlayableKey		= @"playable";
 NSString *const kCurrentItemKey     = @"currentItem";
 
-static void *HSVideoTimedMetadataObserverContext = &HSVideoTimedMetadataObserverContext;
+// Observer
 static void *HSVideoRateObserverContext = &HSVideoRateObserverContext;
-static void *HSVideoCurrentItemObservationContext = &HSVideoCurrentItemObservationContext;
+static void *HSVideoCurrentItemObserverContext = &HSVideoCurrentItemObserverContext;
 static void *HSVideoPlayerItemStatusObserverContext = &HSVideoPlayerItemStatusObserverContext;
 
 NSString *const HSVideoPlaybackDidFinishNotification = @"HSVideoPlaybackDidFinishNotification";
@@ -24,17 +28,20 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
 
 
 #pragma mark -
-@interface HSVideoController (Player)
+@interface HSVideoViewController (Player)
 - (Float64)durationInSeconds;
 - (Float64)currentTimeInSeconds;
 - (Float64)timeRemainingInSeconds;
+- (void)addTimeObserver;
+- (void)removeTimeObserver;
+- (BOOL)isPlaying;
+- (void)loadAssetAsync;
 - (void)assetFailedToPrepareForPlayback;
 - (void)prepareToPlayAsset:(AVURLAsset *)asset withKeys:(NSArray *)requestedKeys;
-- (void)loadAssetAsync;
-- (BOOL)isPlaying;
+
 @end
 
-@implementation HSVideoController
+@implementation HSVideoViewController
 
 @synthesize videoURL;
 @synthesize shouldAutoplay;
@@ -43,16 +50,17 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
 #pragma mark -
 #pragma mark Init
 
-- (id)initWithContentURL:(NSURL *)url {
-    
-    self = [super init];
+- (id)initWithContentURL:(NSURL *)url 
+{    
+    self = [super initWithNibName:@"HSVideoPlayer" bundle:nil];
     if (self)
     {
         isFullscreen = NO;
         isScrubbing = NO;
         firstPlayback = YES;
         
-        self.shouldAutoplay = YES;
+        self.shouldAutoplay = NO;
+        self.scalingMode = @"AVLayerVideoGravityResizeAspect";
         [self setVideoURL:url];
     }
     
@@ -61,9 +69,12 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
 
 #pragma mark Dealloc
 
-- (void)dealloc {
-    
-    [timeObserver release];
+- (void)dealloc 
+{    
+    if (timeObserver) 
+    {
+        [player removeTimeObserver:timeObserver];
+    }
     
     [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:AVPlayerItemDidPlayToEndTimeNotification
@@ -72,6 +83,8 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
     [player removeObserver:self forKeyPath:kCurrentItemKey];
     [playerItem removeObserver:self forKeyPath:kStatusKey];
     [player removeObserver:self forKeyPath:kRateKey];
+    
+    [timeObserver release];
     
     [player release];
     [playerItem release];
@@ -94,8 +107,8 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
 
 #pragma mark UIViewController
 
--(void) viewDidLoad {
-    
+-(void) viewDidLoad 
+{    
     // Add lowerControls Rounded Corners and a white Border
     lowerControls.layer.borderColor = [[UIColor whiteColor] CGColor];
     lowerControls.layer.borderWidth = 2.3;
@@ -108,51 +121,37 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
     [super viewDidLoad];
 }
 
-static NSString *timeStringForSeconds(Float64 seconds) {
+#pragma mark UI Updates
+
+static NSString *timeStringForSeconds(Float64 seconds) 
+{
     NSUInteger minutes = seconds / 60;
     NSUInteger secondsLeftOver = seconds - (minutes * 60);
     return [NSString stringWithFormat:@"%02ld:%02ld", minutes, secondsLeftOver];
 }
 
-- (void)updateTimeElapsed {
+- (void)updateTimeElapsed 
+{
     timeElapsed.text = timeStringForSeconds([self currentTimeInSeconds]);
 }
 
-- (void)updateTimeRemaining {
+- (void)updateTimeRemaining 
+{
     timeRemaining.text = [NSString stringWithFormat:@"-%@", timeStringForSeconds([self timeRemainingInSeconds])]; 
 }
 
 
-- (void)updatePlayPauseButton {
-    
-    UIImage *buttonImage = nil;
+- (void)updatePlayPauseButton 
+{    
+    UIImage *buttonImage;
     
     if ([self isPlaying])
-	{
         buttonImage = [UIImage imageNamed:@"pause"];
-	}
 	else
-	{
-        buttonImage = [UIImage imageNamed:@"play"];     
-	}
+        buttonImage = [UIImage imageNamed:@"play"];
     
     [playButton setImage:buttonImage forState:UIControlStateNormal];
 }
-
-- (IBAction)updateFullscreenButton 
-{
-    UIImage *buttonImage = nil;
-    
-    if (isFullscreen) {
-        buttonImage = [UIImage imageNamed:@"fullscreen"]; 
-    }
-    else {
-        buttonImage = [UIImage imageNamed:@"fullscreen"];
-    }
-    
-    [fullscreenButton setImage:buttonImage forState:UIControlStateNormal];
-}
-
 
 - (void)updateTimeScrubber
 {
@@ -166,14 +165,183 @@ static NSString *timeStringForSeconds(Float64 seconds) {
         
 		[timeControl setValue:(maxValue - minValue) * currentTime / duration + minValue];        
 	}
-    else {
+    else 
         timeControl.minimumValue = 0.0;
+}
+
+#pragma mark -
+#pragma mark Actions
+
+- (IBAction)togglePlaying:(id)sender 
+{
+	if ([self isPlaying])
+		[self pause];
+	else
+		[self play];
+}
+
+- (IBAction)toggleFullscreen:(id)sender
+{
+    [self setFullscreen:!isFullscreen];
+}
+
+- (IBAction)beginScrubbing:(id)sender
+{
+	rateToRestoreAfterScrubbing = [player rate];
+    isScrubbing = YES;
+	[player setRate:0.f];
+    
+	/* Remove previous timer. */
+	[self removeTimeObserver];
+}
+
+- (IBAction)endScrubbing:(id)sender
+{    
+	if (rateToRestoreAfterScrubbing)
+	{
+		[player setRate:rateToRestoreAfterScrubbing];
+		rateToRestoreAfterScrubbing = 0.f;
+	}
+    isScrubbing = NO;
+}
+
+/* Set the player current time to match the scrubber position. */
+- (IBAction)scrubValueChanged:(id)sender
+{
+	if ([sender isKindOfClass:[UISlider class]])
+	{
+		UISlider* slider = sender;
+		Float64 duration = [self durationInSeconds];
+        
+        if (duration < 0.01) 
+        {
+            return;
+        }
+		
+		if (isfinite(duration))
+		{
+			float minValue = [slider minimumValue];
+			float maxValue = [slider maximumValue];
+			float value = [slider value];
+			
+			Float64 elapsed = duration * (value - minValue) / (maxValue - minValue);
+            Float64 remaining = duration - elapsed;
+			
+			[player seekToTime:CMTimeMakeWithSeconds(elapsed, NSEC_PER_SEC) 
+               toleranceBefore:kCMTimeZero 
+                toleranceAfter:kCMTimePositiveInfinity];
+
+            timeElapsed.text = timeStringForSeconds(elapsed);
+            timeRemaining.text = [NSString stringWithFormat:@"-%@", timeStringForSeconds(remaining)];   
+		}
+	}
+}
+
+- (IBAction)updateFullscreenButton
+{
+    UIImage *buttonImage;
+    
+    if (isFullscreen)
+        buttonImage = [UIImage imageNamed:@"fullscreen-exit"];
+    else
+        buttonImage = [UIImage imageNamed:@"fullscreen-exit"];
+    
+    [fullscreenButton setImage:buttonImage forState:UIControlStateNormal];
+}
+
+- (void)play
+{    
+	[player play];
+    [self updatePlayPauseButton];
+}
+
+- (void)pause
+{
+	[player pause];
+    [self updatePlayPauseButton];
+}
+
+-(void)setFullscreen:(BOOL)fullscreen
+{    
+    if (fullscreen) 
+    {
+        CGRect frame = [playbackView.window
+                        convertRect:playbackView.frame
+                        fromView:self.view];
+		[playbackView.window addSubview:playbackView];
+		playbackView.frame = frame;
+        
+        [UIView
+         animateWithDuration:0.4 
+         animations:^{
+             playbackView.frame = playbackView.window.bounds;
+         }];
     }
+    else 
+    {
+        CGRect frame = [self.view
+                        convertRect:playbackView.frame
+                        fromView:playbackView.window];
+		playbackView.frame = frame;
+        [self.view addSubview:playbackView];
+        
+        [UIView
+         animateWithDuration:0.4 
+         animations:^{
+             playbackView.frame = self.view.frame;
+         }];
+    }
+    
+    [[UIApplication sharedApplication] 
+        setStatusBarHidden:fullscreen
+        withAnimation:UIStatusBarAnimationFade];
+    
+    isFullscreen = fullscreen;
+    [self updateFullscreenButton];
+}
+
+-(void)setVideoURL:(NSURL *)url 
+{
+    if (videoURL) 
+    {
+        [videoURL release];
+        videoURL = nil;
+    }
+    
+    videoURL = [url copy];
+    [self loadAssetAsync];
+}
+
+@end
+
+#pragma mark -
+#pragma mark Player
+
+@implementation HSVideoViewController (Player)
+
+static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) 
+{
+    return CMTIME_IS_INVALID(time) ? 0.0f : CMTimeGetSeconds(time);
+}
+
+- (Float64)durationInSeconds 
+{    
+	return secondsWithCMTimeOrZeroIfInvalid([playerItem duration]);
+}
+
+- (Float64)currentTimeInSeconds
+{
+    return secondsWithCMTimeOrZeroIfInvalid([player currentTime]);
+}
+
+- (Float64)timeRemainingInSeconds {
+    return [self durationInSeconds] - [self currentTimeInSeconds];
 }
 
 -(void)addTimeObserver
 {
-    if (!timeObserver) {
+    if (!timeObserver) 
+    {
         timeObserver = [[player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(1.0, NSEC_PER_SEC) 
                                                              queue:NULL 
                                                         usingBlock:
@@ -197,170 +365,14 @@ static NSString *timeStringForSeconds(Float64 seconds) {
 	}
 }
 
-- (void)play
-{    
-	[player play];
-    [self updatePlayPauseButton];  
-}
-
-- (void)pause
-{
-	[player pause];
-    [self updatePlayPauseButton];
-}
-
--(void)setFullscreen:(BOOL)fullscreen
-{    
-    if (fullscreen) 
-    {
-        CGRect frame = [playbackView.window
-                            convertRect:playbackView.frame
-                            fromView:self.view];
-		[playbackView.window addSubview:playbackView];
-		playbackView.frame = frame;
-        
-        [UIView
-            animateWithDuration:0.4 
-            animations:^{
-                 playbackView.frame = playbackView.window.bounds;
-            }];
-    }
-    else 
-    {
-        CGRect frame = [self.view
-                        convertRect:playbackView.frame
-                        fromView:playbackView.window];
-		playbackView.frame = frame;
-        [self.view addSubview:playbackView];
-        
-        [UIView
-            animateWithDuration:0.4 
-            animations:^{
-                playbackView.frame = self.view.frame;
-            }];
-    }
-    
-    [[UIApplication sharedApplication] 
-        setStatusBarHidden:fullscreen
-        withAnimation:UIStatusBarAnimationFade];
-    
-    isFullscreen = fullscreen;
-    [self updateFullscreenButton];
-}
-
--(void)setVideoURL:(NSURL *)url {
-    if (videoURL) {
-        [videoURL release];
-        videoURL = nil;
-    }
-    videoURL = [url copy];
-    [self loadAssetAsync];
-}
-
-#pragma mark -
-#pragma mark Actions
-
-- (IBAction)togglePlaying:(id)sender {
-	if ([self isPlaying])
-    {
-		[self pause];
-    }
-	else
-    {
-		[self play];
-    }
-}
-
-- (IBAction)toggleFullscreen:(id)sender
-{
-    [self setFullscreen:!isFullscreen];
-}
-
-- (IBAction)beginScrubbing:(id)sender
-{
-	rateToRestoreAfterScrubbing = [player rate];
-    isScrubbing = YES;
-	[player setRate:0.f];
-    
-	/* Remove previous timer. */
-	[self removeTimeObserver];
-}
-
-- (IBAction)endScrubbing:(id)sender
-{ 
-    [self addTimeObserver];
-    
-	if (rateToRestoreAfterScrubbing)
-	{
-		[player setRate:rateToRestoreAfterScrubbing];
-		rateToRestoreAfterScrubbing = 0.f;
-        isScrubbing = NO;
-	}
-}
-
-/* Set the player current time to match the scrubber position. */
-- (IBAction)scrubValueChanged:(id)sender
-{
-	if ([sender isKindOfClass:[UISlider class]])
-	{
-		UISlider* slider = sender;
-		
-		Float64 duration = [self durationInSeconds];
-        
-        if (duration < 0.01) {
-            return;
-        }
-		
-		if (isfinite(duration))
-		{
-			float minValue = [slider minimumValue];
-			float maxValue = [slider maximumValue];
-			float value = [slider value];
-			
-			Float64 elapsed = duration * (value - minValue) / (maxValue - minValue);
-            Float64 remaining = duration - elapsed;
-			
-			[player seekToTime:CMTimeMakeWithSeconds(elapsed, NSEC_PER_SEC) 
-               toleranceBefore:kCMTimeZero 
-                toleranceAfter:kCMTimePositiveInfinity];
-
-            timeElapsed.text = timeStringForSeconds(elapsed);
-            timeRemaining.text = [NSString stringWithFormat:@"-%@", timeStringForSeconds(remaining)];   
-		}
-	}
-}
-
-@end
-
-#pragma mark -
-#pragma mark Player
-
-@implementation HSVideoController (Player)
-
-static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
-    return CMTIME_IS_INVALID(time) ? 0.0f : CMTimeGetSeconds(time);
-}
-
-- (Float64)durationInSeconds 
-{    
-	return secondsWithCMTimeOrZeroIfInvalid([playerItem duration]);
-}
-
-- (Float64)currentTimeInSeconds
-{
-    return secondsWithCMTimeOrZeroIfInvalid([player currentTime]);
-}
-
-- (Float64)timeRemainingInSeconds {
-    return [self durationInSeconds] - [self currentTimeInSeconds];
-}
 
 - (BOOL)isPlaying
 {
-	return ([player rate] != 0.f);
+	return (rateToRestoreAfterScrubbing != 0.f || [player rate] != 0.f);
 }
 
-- (void) loadAssetAsync {
+- (void) loadAssetAsync 
+{
     /*
      Create an asset for inspection of a resource referenced by a given URL.
      Load the values for the asset keys "tracks", "playable".
@@ -402,7 +414,6 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
     [[NSNotificationCenter defaultCenter] postNotificationName:HSVideoPlaybackDidFinishNotification 
                                                         object:self userInfo:userInfo];
 }
-
 
 /*
  Invoked at the completion of the loading of the values for all keys on the asset that we require.
@@ -469,7 +480,7 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
         [player addObserver:self 
                  forKeyPath:kCurrentItemKey 
                     options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
-                    context:HSVideoCurrentItemObservationContext];
+                    context:HSVideoCurrentItemObserverContext];
         
         /* Observe the AVPlayer "rate" property to update the scrubber control. */
         [player addObserver:self
@@ -485,7 +496,10 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
          asynchronously; observe the currentItem property to find out when the 
          replacement will/did occur*/
         [player replaceCurrentItemWithPlayerItem:playerItem];
+        [self updatePlayPauseButton];
     }
+    
+    [timeControl setValue:0.0];
 }
 
 - (void)observeValueForKeyPath:(NSString*) keyPath 
@@ -499,8 +513,6 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
         AVPlayerStatus status = [[change objectForKey:NSKeyValueChangeNewKey] integerValue];
         switch (status)
         {
-                /* Indicates that the status of the player is not yet known because 
-                 it has not tried to load new media resources for playback */
             case AVPlayerStatusUnknown:
             {
                 [self removeTimeObserver];
@@ -509,31 +521,33 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
                 [timeControl setEnabled:NO];
                 [playButton setEnabled:NO];
                 [fullscreenButton setEnabled:NO];
-                [loadingIndicator startAnimating];
             }
                 break;
                 
             case AVPlayerStatusReadyToPlay:
             {
-                if (firstPlayback) {
-                
+                if (firstPlayback) 
+                {
                     [timeControl setEnabled:YES];
                     [playButton setEnabled:YES];
                     [fullscreenButton setEnabled:YES];
-                
                     [upperControls setHidden:NO];
                     [lowerControls setHidden:NO];
                     [loadingIndicator stopAnimating];
+                    
+                    [playbackView setNeedsDisplay];
                 
-                    [playbackView setPlayer:player];
-                
-                    [self addTimeObserver];
-                
-                    if (self.shouldAutoplay) {
+                    if (self.shouldAutoplay) 
+                    {
                         [player play];
                     }
                     
                     firstPlayback = NO;
+                }
+                
+                if (!isScrubbing) 
+                {
+                    [self addTimeObserver];
                 }
             }
                 break;
@@ -549,15 +563,14 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
 	else if (context == HSVideoRateObserverContext)
 	{
         if (isScrubbing) 
-        {
             return;
-        }
+        
         [self updatePlayPauseButton];
 	}
 	/* AVPlayer "currentItem" property observer. 
      Called when the AVPlayer replaceCurrentItemWithPlayerItem: 
      replacement will/did occur. */
-	else if (context == HSVideoCurrentItemObservationContext)
+	else if (context == HSVideoCurrentItemObserverContext)
 	{
         AVPlayerItem *newPlayerItem = [change objectForKey:NSKeyValueChangeNewKey];
         
@@ -570,7 +583,9 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) {
         }
         else /* Replacement of player currentItem has occurred */
         {
-            [player replaceCurrentItemWithPlayerItem:playerItem];
+            [playbackView setPlayer:player];
+            [playbackView setVideoFillMode:[self scalingMode]];
+            
             [self updatePlayPauseButton];
         }
 	}

@@ -1,10 +1,13 @@
-//
-//  HSVideoController.h
-//  HLVideo
-//
-//  Created by Sebastian Schuler on 04.12.11.
-//  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
-//
+/**
+ * HSVideoViewController.h
+ * 
+ * Manages the playback of a movie from a network stream.
+ *
+ * Copyright 2011 
+ *   - Sebastian Schuler
+ *   - Jennifer Schoendorf
+ *   - Stan Patzschke
+ */
 
 #import <UIKit/UIKit.h>
 #import <AVFoundation/AVFoundation.h>
@@ -18,12 +21,17 @@ enum {
 };
 typedef NSInteger HSVideoFinishReason;
 
-@interface HSVideoController : UIViewController {
+@interface HSVideoViewController : UIViewController {
     
 @private
     
     AVPlayer *player;
     AVPlayerItem *playerItem;
+    
+    float rateToRestoreAfterScrubbing;
+    BOOL isFullscreen;
+    BOOL isScrubbing;
+    BOOL firstPlayback;
     
     IBOutlet PlaybackView *playbackView;
     IBOutlet UpperControlBar *upperControls;
@@ -36,12 +44,8 @@ typedef NSInteger HSVideoFinishReason;
     IBOutlet UIButton *fullscreenButton;
     IBOutlet UIActivityIndicatorView *loadingIndicator;
     
-    float rateToRestoreAfterScrubbing;
-    BOOL isFullscreen;
-    BOOL isScrubbing;
-    BOOL firstPlayback;
-    
     id timeObserver;
+    NSTimer *hideControlsTimer;
     
 @public
     
@@ -54,7 +58,7 @@ typedef NSInteger HSVideoFinishReason;
 // likely to finish uninterrupted based on e.g. network conditions. Defaults to NO.
 @property(nonatomic) BOOL shouldAutoplay;
 
-// Determines how the content scales to fit the view. Defaults to MPMovieScalingModeAspectFit.
+// Determines how the content scales to fit the view. Defaults to AVLayerVideoGravityResizeAspect.
 @property(nonatomic, copy) NSString *scalingMode;
 
 - (id)initWithContentURL:(NSURL *)url;
