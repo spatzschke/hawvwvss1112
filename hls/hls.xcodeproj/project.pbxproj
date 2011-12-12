@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9E1996C31496007C0093563C /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9E1996C21496007C0093563C /* MediaPlayer.framework */; };
 		9E5AD798148C077200A32FD5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5AD78F148C077200A32FD5 /* AppDelegate.m */; };
 		9E5AD799148C077200A32FD5 /* HSVideoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5AD791148C077200A32FD5 /* HSVideoViewController.m */; };
 		9E5AD79A148C077200A32FD5 /* PlaybackView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E5AD793148C077200A32FD5 /* PlaybackView.m */; };
@@ -19,6 +20,7 @@
 		9E5AD7A8148C078F00A32FD5 /* play.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E5AD7A3148C078F00A32FD5 /* play.png */; };
 		9E5AD7A9148C078F00A32FD5 /* volume-max.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E5AD7A4148C078F00A32FD5 /* volume-max.png */; };
 		9E5AD7AA148C078F00A32FD5 /* volume-min.png in Resources */ = {isa = PBXBuildFile; fileRef = 9E5AD7A5148C078F00A32FD5 /* volume-min.png */; };
+		9EE11DB61495FC3B00040171 /* icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = 9EE11DB51495FC3B00040171 /* icon-72.png */; };
 		F61B38761486CCF100D95F55 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F61B38751486CCF100D95F55 /* CoreMedia.framework */; };
 		F61B38781486CCFC00D95F55 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F61B38771486CCFB00D95F55 /* AVFoundation.framework */; };
 		F6CE8C2C147E9915009D7FAF /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6CE8C2B147E9915009D7FAF /* UIKit.framework */; };
@@ -29,6 +31,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		9E1996C21496007C0093563C /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
 		9E5AD78E148C077200A32FD5 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Classes/AppDelegate.h; sourceTree = "<group>"; };
 		9E5AD78F148C077200A32FD5 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = Classes/AppDelegate.m; sourceTree = "<group>"; };
 		9E5AD790148C077200A32FD5 /* HSVideoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HSVideoViewController.h; path = Classes/HSVideoViewController.h; sourceTree = "<group>"; };
@@ -46,6 +49,7 @@
 		9E5AD7A3148C078F00A32FD5 /* play.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = play.png; path = Resources/images/play.png; sourceTree = "<group>"; };
 		9E5AD7A4148C078F00A32FD5 /* volume-max.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "volume-max.png"; path = "Resources/images/volume-max.png"; sourceTree = "<group>"; };
 		9E5AD7A5148C078F00A32FD5 /* volume-min.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "volume-min.png"; path = "Resources/images/volume-min.png"; sourceTree = "<group>"; };
+		9EE11DB51495FC3B00040171 /* icon-72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "icon-72.png"; path = "Resources/images/icon-72.png"; sourceTree = "<group>"; };
 		F61B38751486CCF100D95F55 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		F61B38771486CCFB00D95F55 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		F6CE8C27147E9915009D7FAF /* hls.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = hls.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -63,6 +67,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9E1996C31496007C0093563C /* MediaPlayer.framework in Frameworks */,
 				F61B38781486CCFC00D95F55 /* AVFoundation.framework in Frameworks */,
 				F61B38761486CCF100D95F55 /* CoreMedia.framework in Frameworks */,
 				F6CE8C2C147E9915009D7FAF /* UIKit.framework in Frameworks */,
@@ -77,6 +82,7 @@
 		F61B386F1486C9A800D95F55 /* images */ = {
 			isa = PBXGroup;
 			children = (
+				9EE11DB51495FC3B00040171 /* icon-72.png */,
 				9E5AD7A1148C078F00A32FD5 /* fullscreen-exit.png */,
 				9E5AD7A2148C078F00A32FD5 /* pause.png */,
 				9E5AD7A3148C078F00A32FD5 /* play.png */,
@@ -119,6 +125,7 @@
 		F6CE8C2A147E9915009D7FAF /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				9E1996C21496007C0093563C /* MediaPlayer.framework */,
 				F61B38771486CCFB00D95F55 /* AVFoundation.framework */,
 				F61B38751486CCF100D95F55 /* CoreMedia.framework */,
 				F6CE8C2B147E9915009D7FAF /* UIKit.framework */,
@@ -217,6 +224,7 @@
 				9E5AD7A8148C078F00A32FD5 /* play.png in Resources */,
 				9E5AD7A9148C078F00A32FD5 /* volume-max.png in Resources */,
 				9E5AD7AA148C078F00A32FD5 /* volume-min.png in Resources */,
+				9EE11DB61495FC3B00040171 /* icon-72.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -301,7 +309,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "hls/hls-Prefix.pch";
 				INFOPLIST_FILE = "hls/hls-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = hls;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -312,7 +320,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "hls/hls-Prefix.pch";
 				INFOPLIST_FILE = "hls/hls-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = hls;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
