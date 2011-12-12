@@ -100,9 +100,9 @@
 		F6CE8C1C147E9915009D7FAF = {
 			isa = PBXGroup;
 			children = (
+				F6CE8C31147E9915009D7FAF /* Classes */,
 				F61B38741486C9B800D95F55 /* Resources */,
 				F6CE8C32147E9915009D7FAF /* Supporting Files */,
-				F6CE8C31147E9915009D7FAF /* Classes */,
 				F6CE8C2A147E9915009D7FAF /* Frameworks */,
 				F6CE8C28147E9915009D7FAF /* Products */,
 			);
