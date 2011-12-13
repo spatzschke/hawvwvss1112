@@ -27,6 +27,8 @@ NSString *const kCurrentItemKey     = @"currentItem";
 static void *HSVideoRateObserverContext = &HSVideoRateObserverContext;
 static void *HSVideoCurrentItemObserverContext = &HSVideoCurrentItemObserverContext;
 static void *HSVideoPlayerItemStatusObserverContext = &HSVideoPlayerItemStatusObserverContext;
+static void *HSVideoPLayerBufferEmptyObserverContext = &HSVideoPLayerBufferEmptyObserverContext;
+static void *HSVideoPlayerLikelyToKeepUpObserverContext = &HSVideoPlayerLikelyToKeepUpObserverContext;
 
 NSString *const HSVideoPlaybackDidFinishNotification = @"HSVideoPlaybackDidFinishNotification";
 NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDidFinishReasonUserInfoKey";
@@ -128,13 +130,41 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
 #pragma mark UIViewController
 
 -(void) viewDidLoad 
-{    
+{
     // Add lowerControls Rounded Corners and a white Border
     lowerControls.layer.borderColor = [[UIColor whiteColor] CGColor];
     lowerControls.layer.borderWidth = 2.3;
     lowerControls.layer.cornerRadius = 15;
     [lowerControls.layer setMasksToBounds:YES];
     
+    // Add MPVolumeView
+    MPVolumeView *volumeView = [[MPVolumeView alloc] init];
+    UISlider *volumeSlider = [[UISlider alloc] init];
+    
+    // Find the Slider in MPVolumeView
+	for (UIView *view in [volumeView subviews]) {
+		if ([[[view class] description] isEqualToString:@"MPVolumeSlider"]) 
+        {
+			volumeSlider = (UISlider *) [view retain];
+            break;
+		}
+	}
+    
+    [volumeSlider setMinimumValueImage:[volumeControl minimumValueImage]];
+    [volumeSlider setMaximumValueImage:[volumeControl maximumValueImage]];
+    [volumeSlider setMinimumTrackTintColor:[volumeControl minimumTrackTintColor]];
+    [volumeSlider setMaximumTrackTintColor:[volumeControl maximumTrackTintColor]];
+    [volumeSlider setFrame:[volumeControl bounds]];
+    [volumeSlider setCenter:[volumeControl center]];
+    
+    [volumeControl removeFromSuperview];
+    [lowerControls addSubview:volumeSlider];
+    
+    [volumeControl release];
+    volumeControl = [volumeSlider retain];
+    [volumeSlider release];
+    [volumeView release];
+     
     // Start loading indicator
     [loadingIndicator startAnimating];
     
@@ -323,8 +353,8 @@ static NSString *timeStringForSeconds(Float64 seconds)
 - (IBAction)beginScrubbing:(id)sender
 {
 	rateToRestoreAfterScrubbing = [player rate];
-    isScrubbing = YES;
 	[player setRate:0.f];
+    isScrubbing = YES;
     
 	/* Remove previous timer. */
 	[self removeTimeObserver];
@@ -337,6 +367,7 @@ static NSString *timeStringForSeconds(Float64 seconds)
 		[player setRate:rateToRestoreAfterScrubbing];
 		rateToRestoreAfterScrubbing = 0.f;
 	}
+    
     isScrubbing = NO;
 }
 
@@ -530,8 +561,8 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time)
 /* Called when the player item has played to its end time. */
 - (void) playerItemDidReachEnd:(NSNotification*) aNotification 
 {
-    [self updatePlayPauseButton];
     [player seekToTime:kCMTimeZero];
+    [player setRate:0.f];
 }
 
 -(void)assetFailedToPrepareForPlayback
@@ -542,12 +573,7 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time)
     [timeControl setEnabled:NO];
     [playButton setEnabled:NO];
     
-    NSNumber *stopCode = [NSNumber numberWithInt: HSVideoFinishReasonPlaybackError];
-    NSDictionary *userInfo = [NSDictionary dictionaryWithObject: stopCode
-                                                         forKey: HSVideoPlaybackDidFinishReasonUserInfoKey];
-    
-    [[NSNotificationCenter defaultCenter] postNotificationName:HSVideoPlaybackDidFinishNotification 
-                                                        object:self userInfo:userInfo];
+    [loadingIndicator stopAnimating];
 }
 
 /*
@@ -563,7 +589,15 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time)
 		NSError *error = nil;
 		AVKeyValueStatus keyStatus = [asset statusOfValueForKey:thisKey error:&error];
 		if (keyStatus == AVKeyValueStatusFailed)
-		{  
+		{
+            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Verbindungsfehler"
+                                                                message:@"Es konnte keine Verbindung zum Server hergestellt werden."
+                                                               delegate:nil
+                                                      cancelButtonTitle:@"OK"
+                                                      otherButtonTitles:nil];
+            [alertView show];
+            [alertView release];
+            
             [self assetFailedToPrepareForPlayback];
 			return;
 		}
@@ -571,7 +605,15 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time)
     
     if (!asset.playable)
     {
-        [self assetFailedToPrepareForPlayback];    
+        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Fehler"
+                                                            message:@"Die Datei kann nicht abgespielt werden."
+                                                           delegate:nil
+                                                  cancelButtonTitle:@"OK"
+                                                  otherButtonTitles:nil];
+        [alertView show];
+        [alertView release];
+    
+        [self assetFailedToPrepareForPlayback];
         return;
     }
 	
@@ -595,6 +637,17 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time)
                  forKeyPath:kStatusKey 
                     options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
                     context:HSVideoPlayerItemStatusObserverContext];
+    
+    [playerItem addObserver:self 
+                 forKeyPath:@"playbackBufferEmpty" 
+                    options:NSKeyValueObservingOptionNew 
+                    context:HSVideoPLayerBufferEmptyObserverContext];
+    
+    [playerItem addObserver:self 
+                 forKeyPath:@"playbackLikelyToKeepUp" 
+                    options:NSKeyValueObservingOptionNew 
+                    context:HSVideoPlayerLikelyToKeepUpObserverContext];
+
 	
     /* When the player item has played to its end time we'll toggle
      the movie controller Pause button to be the Play button */
@@ -608,6 +661,9 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time)
     {
         /* Get a new AVPlayer initialized to play the specified player item. */
         player = [[AVPlayer alloc] initWithPlayerItem:playerItem];
+        
+        /* Do nothing if the item has finished playing */
+        [player setActionAtItemEnd:AVPlayerActionAtItemEndNone];
 		
         /* Observe the AVPlayer "currentItem" property to find out when any 
          AVPlayer replaceCurrentItemWithPlayerItem: replacement will/did 
@@ -644,7 +700,7 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time)
 {
 	/* AVPlayerItem "status" property value observer. */
     if (context == HSVideoPlayerItemStatusObserverContext)
-	{        
+	{           
         AVPlayerStatus status = [[change objectForKey:NSKeyValueChangeNewKey] integerValue];
         switch (status)
         {
@@ -689,6 +745,15 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time)
                 
             case AVPlayerStatusFailed:
             {
+                
+                UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Fehler"
+                                                                    message:@"Die Datei kann nicht mehr abgespielt werden."
+                                                                   delegate:nil
+                                                          cancelButtonTitle:@"OK"
+                                                          otherButtonTitles:nil];
+                [alertView show];
+                [alertView release];
+                
                 [self assetFailedToPrepareForPlayback];
             }
                 break;
@@ -697,11 +762,21 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time)
 	/* AVPlayer "rate" property value observer. */
 	else if (context == HSVideoRateObserverContext)
 	{
-        if (isScrubbing) 
-            return;
-        
         [self updatePlayPauseButton];
 	}
+    /* AVPlayer "currentItem" buffer is empty observer */
+    else if (context == HSVideoPLayerBufferEmptyObserverContext) 
+    {
+        if (!isScrubbing)
+            [loadingIndicator startAnimating];
+    }
+    /* AVPlayer "currentItem" is likely to keep up observer */
+    else if (context == HSVideoPlayerLikelyToKeepUpObserverContext)
+    {
+        if (!isScrubbing) {
+            [loadingIndicator stopAnimating];
+        }
+    }
 	/* AVPlayer "currentItem" property observer. 
      Called when the AVPlayer replaceCurrentItemWithPlayerItem: 
      replacement will/did occur. */
