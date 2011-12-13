@@ -225,31 +225,47 @@ static NSString *timeStringForSeconds(Float64 seconds)
 }
 
 #pragma mark Orientation
+/*////////////////////////////////////////////////////////////
+/*
+/* Orientationhandling for normal and fullscreen view
+/*
+////////////////////////////////////////////////////////////*/
 
+//Handles the Rotation an the anchorpoint for the rotationanimation
 - (CGAffineTransform)orientationTransformFromSourceBounds:(CGRect)sourceBounds
 {
+    
+// Get orientation of the Device
 	UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
-	if (orientation == UIDeviceOrientationFaceUp ||
+	
+// Where is the display, it is shown to the ground or the the sky
+    if (orientation == UIDeviceOrientationFaceUp ||
 		orientation == UIDeviceOrientationFaceDown)
 	{
+        //anytime get the oriantation of the statusBar
 		orientation = [UIApplication sharedApplication].statusBarOrientation;
 	}
 	
-	
+// Orientation for Landscape Left	
 	else if (orientation == UIDeviceOrientationLandscapeLeft)
 	{
+        //set the rotationangle
 		CGAffineTransform result = CGAffineTransformMakeRotation(2 * M_PI);
         CGRect windowBounds = self.view.frame;
+        //set the rotationanchor
         result = CGAffineTransformTranslate(result,
                                             0.5 * (windowBounds.size.height - sourceBounds.size.width),
                                             0.5 * (windowBounds.size.height - sourceBounds.size.width));
 		
 		return result;
 	}
+// Orientation for Landscape Right
 	else if (orientation == UIDeviceOrientationLandscapeRight)
 	{
+        //set the rotationangle
         CGAffineTransform result = CGAffineTransformMakeRotation(2 * M_PI);
         CGRect windowBounds = self.view.window.bounds;
+        //set the rotationanchor
         result = CGAffineTransformTranslate(result,
                                             0 * (windowBounds.size.height - sourceBounds.size.width),
                                             0 * (windowBounds.size.height - sourceBounds.size.width));
@@ -262,7 +278,20 @@ static NSString *timeStringForSeconds(Float64 seconds)
 
 - (CGRect)rotatedWindowBounds
 {
+// Get orientation of the Device
 	UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
+    
+// Orientation for Portrait
+    if (orientation == UIDeviceOrientationPortrait)
+	{
+        NSLog(@"Portrait");
+        CGAffineTransform transform = 
+        CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(0.0f));
+        
+        self.view.transform = transform;
+	}
+    
+// Orientation for UpsideDown
 	if (orientation == UIDeviceOrientationPortraitUpsideDown)
 	{
         NSLog(@"Portrait UpsideDown");
@@ -272,6 +301,7 @@ static NSString *timeStringForSeconds(Float64 seconds)
         //return CGRectMake(0, 0, 0, 0);
 	}
 	
+// Orientation for Landscape Left
 	if (orientation == UIDeviceOrientationLandscapeLeft)
 	{
         NSLog(@"LandscapeLeft");
@@ -279,40 +309,33 @@ static NSString *timeStringForSeconds(Float64 seconds)
         CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(90.0f));
         
         self.view.transform = transform;
-//		return CGRectMake(0, 0, 0, 0);
 	}
     
-    if (orientation == UIDeviceOrientationPortrait)
-	{
-        NSLog(@"Portrait");
-        CGAffineTransform transform = 
-        CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(0.0f));
-        
-        self.view.transform = transform;
-		
-//		return CGRectMake(0, 0, 0, 0);
-	}
-	
+// Orientation for Landscape Right
 	if (orientation == UIDeviceOrientationLandscapeRight)
 	{
+        
         NSLog(@"LandscapeRight");
         CGAffineTransform transform = 
         CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(90.0f));
         self.view.transform = transform;
-//		return CGRectMake(0, 0, 0, 0);
     }
-    
-    return CGRectMake(0, 0, 500.0f, 300.0f);
+
+// Dont change the size of the Player. Only rotate them.
+    return self.view.bounds;
 	
     
 }
 
+// Method Called by Orientation Notification
 - (void)deviceRotated:(NSNotification *)aNotification
 {
 	if (self.view)
 	{
+        // if a Notfication fired for rotation
 		if (aNotification)
-		{				
+		{			
+            //rotat with animation
 			[UIView animateWithDuration:0.25 animations:^{
 				self.view.bounds = [self rotatedWindowBounds];
 				self.view.transform = [self orientationTransformFromSourceBounds:self.view.bounds];
@@ -322,13 +345,14 @@ static NSString *timeStringForSeconds(Float64 seconds)
 		}
 		else
 		{
+            //rotat without animation / same functionality like with animation
 			self.view.bounds = [self rotatedWindowBounds];
 			self.view.transform = [self orientationTransformFromSourceBounds:self.view.bounds];
 		}
 	}
 	else
 	{
-		//self.view.transform = CGAffineTransformIdentity;
+		self.view.transform = CGAffineTransformIdentity;
 	}
     
     
