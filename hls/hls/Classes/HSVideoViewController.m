@@ -11,6 +11,11 @@
 
 #import "HSVideoViewController.h"
 
+#define M_PI   3.14159265358979323846264338327950288   /* pi */
+
+// Our conversion definition
+#define DEGREES_TO_RADIANS(angle) (angle / 180.0 * M_PI)
+
 // Key path
 NSString *const kTracksKey          = @"tracks";
 NSString *const kStatusKey          = @"status";
@@ -62,6 +67,15 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
         self.shouldAutoplay = NO;
         self.scalingMode = @"AVLayerVideoGravityResizeAspect";
         [self setVideoURL:url];
+        
+        //Add Observer for orientation change
+        [[NSNotificationCenter defaultCenter]
+         addObserver:self
+         selector:@selector(deviceRotated:)
+         name:UIDeviceOrientationDidChangeNotification
+         object:[UIDevice currentDevice]];
+        
+        
     }
     
     return self;
@@ -76,9 +90,15 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
         [player removeTimeObserver:timeObserver];
     }
     
-    [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:AVPlayerItemDidPlayToEndTimeNotification
-                                                  object:nil];
+    [[NSNotificationCenter defaultCenter] 
+     removeObserver:self
+     name:AVPlayerItemDidPlayToEndTimeNotification
+     object:nil];
+    
+    [[NSNotificationCenter defaultCenter]
+     removeObserver:self
+     name:UIDeviceOrientationDidChangeNotification
+     object:[UIDevice currentDevice]];
     
     [player removeObserver:self forKeyPath:kCurrentItemKey];
     [playerItem removeObserver:self forKeyPath:kStatusKey];
@@ -119,6 +139,11 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
     [loadingIndicator startAnimating];
     
     [super viewDidLoad];
+}
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
+{
+	return YES;
 }
 
 #pragma mark UI Updates
@@ -167,6 +192,116 @@ static NSString *timeStringForSeconds(Float64 seconds)
 	}
     else 
         timeControl.minimumValue = 0.0;
+}
+
+#pragma mark Orientation
+
+- (CGAffineTransform)orientationTransformFromSourceBounds:(CGRect)sourceBounds
+{
+	UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
+	if (orientation == UIDeviceOrientationFaceUp ||
+		orientation == UIDeviceOrientationFaceDown)
+	{
+		orientation = [UIApplication sharedApplication].statusBarOrientation;
+	}
+	
+	
+	else if (orientation == UIDeviceOrientationLandscapeLeft)
+	{
+		CGAffineTransform result = CGAffineTransformMakeRotation(2 * M_PI);
+        CGRect windowBounds = self.view.frame;
+        result = CGAffineTransformTranslate(result,
+                                            0.5 * (windowBounds.size.height - sourceBounds.size.width),
+                                            0.5 * (windowBounds.size.height - sourceBounds.size.width));
+		
+		return result;
+	}
+	else if (orientation == UIDeviceOrientationLandscapeRight)
+	{
+        CGAffineTransform result = CGAffineTransformMakeRotation(2 * M_PI);
+        CGRect windowBounds = self.view.window.bounds;
+        result = CGAffineTransformTranslate(result,
+                                            0 * (windowBounds.size.height - sourceBounds.size.width),
+                                            0 * (windowBounds.size.height - sourceBounds.size.width));
+		
+		return result;
+	}
+    
+	return CGAffineTransformIdentity;
+}
+
+- (CGRect)rotatedWindowBounds
+{
+	UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
+	if (orientation == UIDeviceOrientationPortraitUpsideDown)
+	{
+        NSLog(@"Portrait UpsideDown");
+        CGAffineTransform transform = 
+        CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(0.0f));
+        self.view.transform = transform;
+        //return CGRectMake(0, 0, 0, 0);
+	}
+	
+	if (orientation == UIDeviceOrientationLandscapeLeft)
+	{
+        NSLog(@"LandscapeLeft");
+        CGAffineTransform transform = 
+        CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(90.0f));
+        
+        self.view.transform = transform;
+//		return CGRectMake(0, 0, 0, 0);
+	}
+    
+    if (orientation == UIDeviceOrientationPortrait)
+	{
+        NSLog(@"Portrait");
+        CGAffineTransform transform = 
+        CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(0.0f));
+        
+        self.view.transform = transform;
+		
+//		return CGRectMake(0, 0, 0, 0);
+	}
+	
+	if (orientation == UIDeviceOrientationLandscapeRight)
+	{
+        NSLog(@"LandscapeRight");
+        CGAffineTransform transform = 
+        CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(90.0f));
+        self.view.transform = transform;
+//		return CGRectMake(0, 0, 0, 0);
+    }
+    
+    return CGRectMake(0, 0, 500.0f, 300.0f);
+	
+    
+}
+
+- (void)deviceRotated:(NSNotification *)aNotification
+{
+	if (self.view)
+	{
+		if (aNotification)
+		{				
+			[UIView animateWithDuration:0.25 animations:^{
+				self.view.bounds = [self rotatedWindowBounds];
+				self.view.transform = [self orientationTransformFromSourceBounds:self.view.bounds];
+			} completion:^(BOOL complete){
+				
+			}];
+		}
+		else
+		{
+			self.view.bounds = [self rotatedWindowBounds];
+			self.view.transform = [self orientationTransformFromSourceBounds:self.view.bounds];
+		}
+	}
+	else
+	{
+		//self.view.transform = CGAffineTransformIdentity;
+	}
+    
+    
 }
 
 #pragma mark -
