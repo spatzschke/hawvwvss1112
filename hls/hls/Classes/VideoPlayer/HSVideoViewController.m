@@ -69,31 +69,18 @@ static void *HSVideoPlayerLikelyToKeepUpObserverContext = &HSVideoPlayerLikelyTo
     return self;
 }
 
-- (void)release {
-    
-    NSLog(@"Counter: %d", self.retainCount);
-    [super release];
-}
-
 #pragma mark Dealloc
 
 - (void)dealloc 
-{
-    NSLog(@"Hallo");
-    //[self removeTimeObserver];
-    
-    [player removeTimeObserver:timeObserver]; ///??????
-    [timeObserver release];
-    
+{    
+    [self removeTimeObserver];
+
     [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:AVPlayerItemDidPlayToEndTimeNotification
                                                   object:nil];
     
     [player removeObserver:self forKeyPath:kCurrentItemKey];
     [player removeObserver:self forKeyPath:kRateKey];
-    //[playerItem removeObserver:self forKeyPath:kStatusKey];
-    //[playerItem removeObserver:self forKeyPath:kBufferEmpty];
-    //[playerItem removeObserver:self forKeyPath:kLikelyToKeepUp];
     
     [player pause];
     [player release];
@@ -127,7 +114,7 @@ static void *HSVideoPlayerLikelyToKeepUpObserverContext = &HSVideoPlayerLikelyTo
     
     // Add MPVolumeView
     MPVolumeView *volumeView = [[MPVolumeView alloc] init];
-    UISlider *volumeSlider = [[UISlider alloc] init];
+    UISlider *volumeSlider;
     
     // Find the Slider in MPVolumeView
 	for (UIView *view in [volumeView subviews]) {
@@ -147,6 +134,8 @@ static void *HSVideoPlayerLikelyToKeepUpObserverContext = &HSVideoPlayerLikelyTo
     
     [volumeControl removeFromSuperview];
     [volumeControl release];
+    volumeControl = nil;
+    
     volumeControl = [volumeSlider retain];
     
     [volumeSlider release];
@@ -192,7 +181,8 @@ static void *HSVideoPlayerLikelyToKeepUpObserverContext = &HSVideoPlayerLikelyTo
     [loadingIndicator release];
     loadingIndicator = nil;
     
-    [self removeTimeObserver];
+    [timeObserver release];
+    timeObserver = nil;
     
     [super viewDidUnload];
 }
@@ -634,6 +624,11 @@ static NSString *timeStringForSeconds(Float64 seconds)
 	}
 }
 
+-(void)viewDidDisappear:(BOOL)animated {
+    [self removeTimeObserver];
+    [super viewDidDisappear:animated];
+}
+
 
 - (BOOL)isPlaying
 {
@@ -756,7 +751,7 @@ static NSString *timeStringForSeconds(Float64 seconds)
                                              selector:@selector(playerItemDidReachEnd:)
                                                  name:AVPlayerItemDidPlayToEndTimeNotification
                                                object:playerItem];
-	
+    
     /* Create new player, if we don't already have one. */
     if (!player)
     {
@@ -799,6 +794,7 @@ static NSString *timeStringForSeconds(Float64 seconds)
                         change:(NSDictionary*)change 
                        context:(void*)context
 {
+    
 	/* AVPlayerItem "status" property value observer. */
     if (context == HSVideoPlayerItemStatusObserverContext)
 	{           
