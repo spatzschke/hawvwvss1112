@@ -29,7 +29,7 @@ typedef NSInteger HSVideoFinishReason;
     AVPlayer *player;
     AVPlayerItem *playerItem;
     
-    float rateToRestoreAfterScrubbing;
+    Float64 rateToRestoreAfterScrubbing;
     BOOL isFullscreen;
     BOOL isScrubbing;
     BOOL firstPlayback;
@@ -46,14 +46,13 @@ typedef NSInteger HSVideoFinishReason;
     IBOutlet UIActivityIndicatorView *loadingIndicator;
     
     id timeObserver;
-    NSTimer *hideControlsTimer;
     
 @public
     
     NSURL *videoURL;
 }
 
-@property(nonatomic, copy) NSURL *videoURL;
+@property(nonatomic, retain) NSURL *videoURL;
 
 // Indicates if a movie should automatically start playback when it is 
 // likely to finish uninterrupted based on e.g. network conditions. Defaults to NO.
@@ -68,10 +67,3 @@ typedef NSInteger HSVideoFinishReason;
 - (void)pause;
 
 @end
-
-// Notifications
-
-// Posted when video playback ends.
-extern NSString *const HSVideoPlaybackDidFinishNotification;
-
-extern NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey;

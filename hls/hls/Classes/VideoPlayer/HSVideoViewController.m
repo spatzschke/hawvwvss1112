@@ -11,17 +11,14 @@
 
 #import "HSVideoViewController.h"
 
-#define M_PI   3.14159265358979323846264338327950288   /* pi */
-
-// Our conversion definition
-#define DEGREES_TO_RADIANS(angle) (angle / 180.0 * M_PI)
-
 // Key path
 NSString *const kTracksKey          = @"tracks";
 NSString *const kStatusKey          = @"status";
 NSString *const kRateKey			= @"rate";
 NSString *const kPlayableKey		= @"playable";
 NSString *const kCurrentItemKey     = @"currentItem";
+NSString *const kBufferEmpty        = @"playbackBufferEmpty";
+NSString *const kLikelyToKeepUp     = @"playbackLikelyToKeepUp";
 
 // Observer
 static void *HSVideoRateObserverContext = &HSVideoRateObserverContext;
@@ -30,12 +27,10 @@ static void *HSVideoPlayerItemStatusObserverContext = &HSVideoPlayerItemStatusOb
 static void *HSVideoPLayerBufferEmptyObserverContext = &HSVideoPLayerBufferEmptyObserverContext;
 static void *HSVideoPlayerLikelyToKeepUpObserverContext = &HSVideoPlayerLikelyToKeepUpObserverContext;
 
-NSString *const HSVideoPlaybackDidFinishNotification = @"HSVideoPlaybackDidFinishNotification";
-NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDidFinishReasonUserInfoKey";
-
-
 #pragma mark -
 @interface HSVideoViewController (Player)
+
+- (Float64)secondsWithCMTimeOrZeroIfInvalid:(CMTime) time;
 - (Float64)durationInSeconds;
 - (Float64)currentTimeInSeconds;
 - (Float64)timeRemainingInSeconds;
@@ -58,8 +53,8 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
 #pragma mark Init
 
 - (id)initWithContentURL:(NSURL *)url 
-{    
-    self = [super initWithNibName:@"HSVideoPlayer" bundle:nil];
+{ 
+    self = [super initWithNibName:@"HSVideoPlayer" bundle:nil];    
     if (self)
     {
         isFullscreen = NO;
@@ -69,42 +64,42 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
         self.shouldAutoplay = NO;
         self.scalingMode = @"AVLayerVideoGravityResizeAspect";
         [self setVideoURL:url];
-        
     }
     
     return self;
 }
 
+- (void)release {
+    
+    NSLog(@"Counter: %d", self.retainCount);
+    [super release];
+}
+
 #pragma mark Dealloc
 
 - (void)dealloc 
-{    
-    if (timeObserver) 
-    {
-        [player removeTimeObserver:timeObserver];
-    }
+{
+    NSLog(@"Hallo");
+    //[self removeTimeObserver];
     
-    [[NSNotificationCenter defaultCenter] 
-     removeObserver:self
-     name:AVPlayerItemDidPlayToEndTimeNotification
-     object:nil];
-    
-    [[NSNotificationCenter defaultCenter]
-     removeObserver:self
-     name:UIDeviceOrientationDidChangeNotification
-     object:[UIDevice currentDevice]];
-    
-    [player removeObserver:self forKeyPath:kCurrentItemKey];
-    [playerItem removeObserver:self forKeyPath:kStatusKey];
-    [player removeObserver:self forKeyPath:kRateKey];
-    
+    [player removeTimeObserver:timeObserver]; ///??????
     [timeObserver release];
     
-    [player release];
-    [playerItem release];
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:AVPlayerItemDidPlayToEndTimeNotification
+                                                  object:nil];
     
-    [self.videoURL release];
-    [self.scalingMode release];
+    [player removeObserver:self forKeyPath:kCurrentItemKey];
+    [player removeObserver:self forKeyPath:kRateKey];
+    //[playerItem removeObserver:self forKeyPath:kStatusKey];
+    //[playerItem removeObserver:self forKeyPath:kBufferEmpty];
+    //[playerItem removeObserver:self forKeyPath:kLikelyToKeepUp];
+    
+    [player pause];
+    [player release];
+    
+    [videoURL release];
+    [scalingMode release];
     
     [playbackView release];
     [upperControls release];
@@ -114,8 +109,9 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
     [timeControl release];
     [volumeControl release];
     [playButton release];
+    [fullscreenButton release];
     [loadingIndicator release];
-    
+
     [super dealloc];
 }
 
@@ -137,7 +133,7 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
 	for (UIView *view in [volumeView subviews]) {
 		if ([[[view class] description] isEqualToString:@"MPVolumeSlider"]) 
         {
-			volumeSlider = (UISlider *) [view retain];
+			volumeSlider = (UISlider *) view;
             break;
 		}
 	}
@@ -150,12 +146,13 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
     [volumeSlider setCenter:[volumeControl center]];
     
     [volumeControl removeFromSuperview];
-    [lowerControls addSubview:volumeSlider];
-    
     [volumeControl release];
     volumeControl = [volumeSlider retain];
+    
     [volumeSlider release];
     [volumeView release];
+    
+    [lowerControls addSubview:volumeControl];
      
     // Start loading indicator
     [loadingIndicator startAnimating];
@@ -163,10 +160,41 @@ NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDid
     [super viewDidLoad];
 }
 
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
+-(void)viewDidUnload 
 {
-	return YES;
+    [playbackView release];
+    playbackView = nil;
+    
+    [upperControls release];
+    upperControls = nil;
+    
+    [lowerControls release];
+    lowerControls = nil;
+    
+    [timeElapsed release];
+    timeElapsed = nil;
+    
+    [timeRemaining release];
+    timeRemaining = nil;
+    
+    [timeControl release];
+    timeControl = nil;
+    
+    [volumeControl release];
+    volumeControl = nil;
+    
+    [playButton release];
+    playButton = nil;
+    
+    [fullscreenButton release];
+    fullscreenButton = nil;
+    
+    [loadingIndicator release];
+    loadingIndicator = nil;
+    
+    [self removeTimeObserver];
+    
+    [super viewDidUnload];
 }
 
 #pragma mark UI Updates
@@ -215,164 +243,6 @@ static NSString *timeStringForSeconds(Float64 seconds)
 	}
     else 
         timeControl.minimumValue = 0.0;
-}
-
-#pragma mark Orientation
-/*////////////////////////////////////////////////////////////
-//
-// Orientationhandling for normal and fullscreen view
-//
-////////////////////////////////////////////////////////////*/
-
-//Handles the Rotation an the anchorpoint for the rotationanimation
-- (CGAffineTransform)orientationTransformFromSourceBounds:(CGRect)sourceBounds
-{
-    
-    UIDeviceOrientation orientation;
-    
-// Check if the Rotation called from a Notification or is called from the fullScreenToogleButton
-    if([[UIDevice currentDevice] orientation] == UIDeviceOrientationUnknown) {
-        orientation = (UIDeviceOrientation)[[UIApplication sharedApplication] statusBarOrientation]; 
-    } else {
-        orientation = [[UIDevice currentDevice] orientation];
-    }
-    
-// Where is the display, it is shown to the ground or the the sky
-	if (orientation == UIDeviceOrientationFaceUp ||
-		orientation == UIDeviceOrientationFaceDown)
-	{
-		orientation = (UIDeviceOrientation)[UIApplication sharedApplication].statusBarOrientation;
-	}
-    
-// Orientation for Protrait Upside Down
-	if (orientation == UIDeviceOrientationPortraitUpsideDown)
-	{
-		CGAffineTransform result;
-        
-        ////set different rotationangle for normal and fullscreenview
-        
-        if(!isFullscreen) {
-            result = CGAffineTransformMakeRotation(2 * M_PI);
-        } else {
-            result = CGAffineTransformMakeRotation(M_PI);
-        }
-        
-        return result;
-	}
-    
-// Orientation for Landscape Left
-	else if (orientation == UIDeviceOrientationLandscapeLeft)
-	{
-        CGAffineTransform result;
-        
-        if(!isFullscreen) {
-            result = CGAffineTransformMakeRotation(0 * M_PI);
-        } else {
-            result = CGAffineTransformMakeRotation(0.5 * M_PI);
-        }
-		
-        return result;
-	}
-    
-// Orientation for Landscape Right
-	else if (orientation == UIDeviceOrientationLandscapeRight)
-	{
-		CGRect windowBounds;
-        CGAffineTransform result;
-        
-        if(!isFullscreen) {
-            result = CGAffineTransformMakeRotation(0 * M_PI);
-            windowBounds = self.view.window.bounds;
-        } else {
-            result = CGAffineTransformMakeRotation(-0.5 * M_PI);
-            windowBounds = playbackView.bounds;
-        }
-		
-        return result;
-	}
-    
-//If the Orientation Portrait do nothing an return the TransormIdentity
-	return CGAffineTransformIdentity;
-}
-
-- (CGRect)rotatedWindowBounds
-{
-    UIDeviceOrientation orientation;
-    
-// Check if the Rotation called from a Notification or is called from the fullScreenToogleButton
-    if([[UIDevice currentDevice] orientation] == UIDeviceOrientationUnknown) {
-        orientation = (UIDeviceOrientation)[[UIApplication sharedApplication] statusBarOrientation]; 
-    } else {
-        orientation = [[UIDevice currentDevice] orientation];
-    }
-    
-	if (orientation == UIDeviceOrientationFaceUp ||
-		orientation == UIDeviceOrientationFaceDown)
-	{
-		orientation = (UIDeviceOrientation)[UIApplication sharedApplication].statusBarOrientation;
-	}
-	
-	if (orientation == UIDeviceOrientationLandscapeLeft ||
-		orientation == UIDeviceOrientationLandscapeRight)
-	{
- 
-//Different Viewsizes for normal and fullscreenview in Landscape Left and Right | Return the Bounds Rect 
-        if(!isFullscreen) {
-            CGRect windowBounds = self.view.bounds;
-            return CGRectMake(0, 0, windowBounds.size.width, windowBounds.size.height);	
-        } else {
-            CGRect windowBounds = playbackView.bounds;
-            return CGRectMake(0, 0, windowBounds.size.height, windowBounds.size.width);
-        }
-	}
-    
-//Different Viewsizes for normal and fullscreenview in Portrait | Return the Bounds Rect 
-    if(!isFullscreen) {
-        return self.view.bounds;
-    } else {
-        return self.view.window.bounds;
-    }
-    
-		
-    
-}
-
-// Method Called by Orientation Notification
-- (void)deviceRotated:(NSNotification *)aNotification
-{
-	if (playbackView)
-	{
-        // if a Notfication fired for rotation
-		if (aNotification)
-		{			
-            CGRect windowBounds = playbackView.window.bounds;
-			UIView *blankingView =
-            [[[UIView alloc] initWithFrame:
-              CGRectMake(-0.5 * (windowBounds.size.height - windowBounds.size.width),
-                         0, windowBounds.size.height, windowBounds.size.height)] autorelease];
-			blankingView.backgroundColor = [UIColor blackColor];
-			[self.view.superview insertSubview:blankingView belowSubview:playbackView];
-			
-			[UIView animateWithDuration:0.25 animations:^{
-				playbackView.bounds = [self rotatedWindowBounds];
-				playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
-			} completion:^(BOOL complete){
-				[blankingView removeFromSuperview];
-			}];
-		}
-		else
-		{
-            //rotate without animation / same functionality like with animation
-			playbackView.bounds = [self rotatedWindowBounds];
-            playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
-		}
-	}
-	else
-	{
-		self.view.transform = CGAffineTransformIdentity;
-	}
-    
-    
 }
 
 #pragma mark -
@@ -483,17 +353,9 @@ static NSString *timeStringForSeconds(Float64 seconds)
          animations:^{
              playbackView.frame = playbackView.window.bounds;
          }];
-        
-        //Add Observer for orientation change
-        [[NSNotificationCenter defaultCenter]
-         addObserver:self
-         selector:@selector(deviceRotated:)
-         name:UIDeviceOrientationDidChangeNotification
-         object:[UIDevice currentDevice]];
     }
     else 
     {
-        
         CGRect frame = [self.view
                         convertRect:playbackView.frame
                         fromView:playbackView.window];
@@ -505,26 +367,13 @@ static NSString *timeStringForSeconds(Float64 seconds)
          animations:^{
              playbackView.frame = self.view.frame;
          }];
-        
-        //Remove Observer for orientation change
-        [[NSNotificationCenter defaultCenter]
-         removeObserver:self
-         name:UIDeviceOrientationDidChangeNotification
-         object:[UIDevice currentDevice]];
     }
-    
-    
     
     [[UIApplication sharedApplication] 
         setStatusBarHidden:fullscreen
         withAnimation:UIStatusBarAnimationFade];
     
     isFullscreen = fullscreen;
-    
-    
-    // Check the Device Orientation and rotate the application
-    [self deviceRotated:nil];
-    
     [self updateFullscreenButton];
 }
 
@@ -536,7 +385,7 @@ static NSString *timeStringForSeconds(Float64 seconds)
         videoURL = nil;
     }
     
-    videoURL = [url copy];
+    videoURL = [url retain];
     [self loadAssetAsync];
 }
 
@@ -547,19 +396,18 @@ static NSString *timeStringForSeconds(Float64 seconds)
 
 @implementation HSVideoViewController (Player)
 
-static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time) 
-{
+- (Float64)secondsWithCMTimeOrZeroIfInvalid:(CMTime)time {
     return CMTIME_IS_INVALID(time) ? 0.0f : CMTimeGetSeconds(time);
 }
 
 - (Float64)durationInSeconds 
 {    
-	return secondsWithCMTimeOrZeroIfInvalid([playerItem duration]);
+	return [self secondsWithCMTimeOrZeroIfInvalid:[playerItem duration]];
 }
 
 - (Float64)currentTimeInSeconds
 {
-    return secondsWithCMTimeOrZeroIfInvalid([player currentTime]);
+    return [self secondsWithCMTimeOrZeroIfInvalid:[player currentTime]];
 }
 
 - (Float64)timeRemainingInSeconds {
@@ -573,7 +421,7 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time)
         timeObserver = [[player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(1.0, NSEC_PER_SEC) 
                                                              queue:NULL 
                                                         usingBlock:
-                         ^(CMTime time) 
+                         ^(CMTime time)
                          {
                              [self updateTimeScrubber];
                              [self updateTimeElapsed];
@@ -606,12 +454,11 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time)
      Load the values for the asset keys "tracks", "playable".
      */
     AVURLAsset *asset = [AVURLAsset URLAssetWithURL:self.videoURL options:nil];
-    
     NSArray *requestedKeys = [NSArray arrayWithObjects:kTracksKey, kPlayableKey, nil];
     
     /* Tells the asset to load the values of any of the specified keys that are not already loaded. */
     [asset loadValuesAsynchronouslyForKeys:requestedKeys completionHandler:
-     ^{		 
+     ^{	
          dispatch_async( dispatch_get_main_queue(), 
                         ^{
                             /* IMPORTANT: Must dispatch to main queue in order to operate on the AVPlayer and AVPlayerItem. */
@@ -692,7 +539,7 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time)
     }
 	
     /* Create a new instance of AVPlayerItem from the now successfully loaded AVAsset. */
-    playerItem = [AVPlayerItem playerItemWithAsset:asset];
+    playerItem = [[AVPlayerItem alloc] initWithAsset:asset];
     
     /* Observe the player item "status" key to determine when it is ready to play. */
     [playerItem addObserver:self 
@@ -701,16 +548,15 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time)
                     context:HSVideoPlayerItemStatusObserverContext];
     
     [playerItem addObserver:self 
-                 forKeyPath:@"playbackBufferEmpty" 
+                 forKeyPath:kBufferEmpty
                     options:NSKeyValueObservingOptionNew 
                     context:HSVideoPLayerBufferEmptyObserverContext];
     
     [playerItem addObserver:self 
-                 forKeyPath:@"playbackLikelyToKeepUp" 
+                 forKeyPath:kLikelyToKeepUp
                     options:NSKeyValueObservingOptionNew 
                     context:HSVideoPlayerLikelyToKeepUpObserverContext];
 
-	
     /* When the player item has played to its end time we'll toggle
      the movie controller Pause button to be the Play button */
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -774,6 +620,8 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time)
                 [timeControl setEnabled:NO];
                 [playButton setEnabled:NO];
                 [fullscreenButton setEnabled:NO];
+                
+                [loadingIndicator startAnimating];
             }
                 break;
                 
@@ -856,6 +704,7 @@ static Float64 secondsWithCMTimeOrZeroIfInvalid(CMTime time)
         else /* Replacement of player currentItem has occurred */
         {
             [playbackView setPlayer:player];
+            
             [playbackView setVideoFillMode:[self scalingMode]];
             
             [self updatePlayPauseButton];
