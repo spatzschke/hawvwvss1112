@@ -14,15 +14,15 @@
 
 @implementation DetailViewController
 
-@synthesize detailItem = _detailItem;
-@synthesize masterPopoverController = _masterPopoverController;
+@synthesize detailItem;
+@synthesize masterPopoverController;
 @synthesize movieTitle;
 @synthesize movieView;
 
 - (void)dealloc
 {
-    [_detailItem release];
-    [_masterPopoverController release];
+    [detailItem release];
+    [masterPopoverController release];
     [movieTitle release];
     [movieView release];
     [super dealloc];
@@ -30,17 +30,19 @@
 
 #pragma mark - Managing the detail item
 
-- (void)showMovie:(NSMutableDictionary *)movie {
-    
-    if (videoController) 
+- (void)showMovie:(NSMutableDictionary *)movie 
+{    
+    if (videoController != nil) 
     {
+        NSLog(@"Und warum!!!");
         [videoController.view removeFromSuperview];
         [videoController release];
         videoController = nil;
     }
     
-    NSURL *contentURL = [[NSURL alloc] initWithString:[movie objectForKey:@"path"]];
-    videoController = [[HSVideoViewController alloc] initWithContentURL:contentURL];
+    NSURL *videoURL = [[NSURL alloc] initWithString:[movie objectForKey:@"path"]];
+    videoController = [[HSVideoViewController alloc] initWithContentURL:videoURL];
+    
     self.movieTitle.text = [movie objectForKey:@"title"];
     videoController.view.frame = movieView.bounds;
     [movieView addSubview:videoController.view];
@@ -50,6 +52,7 @@
         [self.masterPopoverController dismissPopoverAnimated:YES];
     }
     
+    [videoURL release];
 }
 
 - (void)didReceiveMemoryWarning
