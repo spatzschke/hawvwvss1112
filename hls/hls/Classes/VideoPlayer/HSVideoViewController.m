@@ -245,6 +245,178 @@ static NSString *timeStringForSeconds(Float64 seconds)
         timeControl.minimumValue = 0.0;
 }
 
+#pragma mark Orientation
+/*////////////////////////////////////////////////////////////
+ //
+ // Orientationhandling for normal and fullscreen view
+ //
+ ////////////////////////////////////////////////////////////*/
+
+//Handles the Rotation an the anchorpoint for the rotationanimation
+- (CGAffineTransform)orientationTransformFromSourceBounds:(CGRect)sourceBounds
+{
+    
+    UIDeviceOrientation orientation;
+    
+    // Check if the Rotation called from a Notification or is called from the fullScreenToogleButton
+    if([[UIDevice currentDevice] orientation] == UIDeviceOrientationUnknown) {
+        orientation = (UIDeviceOrientation)[[UIApplication sharedApplication] statusBarOrientation]; 
+    } else {
+        orientation = [[UIDevice currentDevice] orientation];
+    }
+    
+    // Where is the display, it is shown to the ground or the the sky
+	if (orientation == UIDeviceOrientationFaceDown)
+	{
+        NSLog(@"FaceDown"); 
+        return CGAffineTransformIdentity;
+        
+	}
+    
+    if (orientation == UIDeviceOrientationFaceUp)
+	{
+        NSLog(@"FaceUp"); 
+        return CGAffineTransformIdentity;
+        
+	}
+    
+    // Orientation for Protrait Upside Down
+	if (orientation == UIDeviceOrientationPortraitUpsideDown)
+	{
+		CGAffineTransform result;
+        
+        NSLog(@"Upside Down");
+        
+        ////set different rotationangle for normal and fullscreenview
+        
+        if(!isFullscreen) {
+            result = CGAffineTransformMakeRotation(2 * M_PI);
+        } else {
+            result = CGAffineTransformMakeRotation(M_PI);
+        }
+        
+        return result;
+	}
+    
+    // Orientation for Landscape Left
+	else if (orientation == UIDeviceOrientationLandscapeLeft)
+	{
+        NSLog(@"Landscape Left");
+        
+        CGAffineTransform result;
+        
+        if(!isFullscreen) {
+            result = CGAffineTransformMakeRotation(0 * M_PI);
+        } else {
+            result = CGAffineTransformMakeRotation(0.5 * M_PI);
+        }
+		
+        return result;
+	}
+    
+    // Orientation for Landscape Right
+	else if (orientation == UIDeviceOrientationLandscapeRight)
+	{
+        NSLog(@"Ladnscape Right");
+        
+		CGRect windowBounds;
+        CGAffineTransform result;
+        
+        if(!isFullscreen) {
+            result = CGAffineTransformMakeRotation(0 * M_PI);
+            windowBounds = self.view.window.bounds;
+        } else {
+            result = CGAffineTransformMakeRotation(-0.5 * M_PI);
+            windowBounds = playbackView.bounds;
+        }
+		
+        return result;
+	}
+    
+    //If the Orientation Portrait do nothing an return the TransormIdentity
+	return CGAffineTransformIdentity;
+}
+
+- (CGRect)rotatedWindowBounds
+{
+    UIDeviceOrientation orientation;
+    
+    // Check if the Rotation called from a Notification or is called from the fullScreenToogleButton
+    if([[UIDevice currentDevice] orientation] == UIDeviceOrientationUnknown) {
+        orientation = (UIDeviceOrientation)[[UIApplication sharedApplication] statusBarOrientation]; 
+    } else {
+        orientation = [[UIDevice currentDevice] orientation];
+    }
+    
+	if (orientation == UIDeviceOrientationFaceUp ||
+		orientation == UIDeviceOrientationFaceDown)
+	{
+		orientation = (UIDeviceOrientation)[UIApplication sharedApplication].statusBarOrientation;
+	}
+	
+	if (orientation == UIDeviceOrientationLandscapeLeft ||
+		orientation == UIDeviceOrientationLandscapeRight)
+	{
+        
+        //Different Viewsizes for normal and fullscreenview in Landscape Left and Right | Return the Bounds Rect 
+        if(!isFullscreen) {
+            CGRect windowBounds = self.view.bounds;
+            return CGRectMake(0, 0, windowBounds.size.width, windowBounds.size.height);	
+        } else {
+            CGRect windowBounds = playbackView.bounds;
+            return CGRectMake(0, 0, windowBounds.size.height, windowBounds.size.width);
+        }
+	}
+    
+    //Different Viewsizes for normal and fullscreenview in Portrait | Return the Bounds Rect 
+    if(!isFullscreen) {
+        return self.view.bounds;
+    } else {
+        return self.view.window.bounds;
+    }
+    
+    
+    
+}
+
+// Method Called by Orientation Notification
+- (void)deviceRotated:(NSNotification *)aNotification
+{
+	if (playbackView)
+	{
+        // if a Notfication fired for rotation
+		if (aNotification)
+		{			
+            CGRect windowBounds = playbackView.window.bounds;
+			UIView *blankingView =
+            [[[UIView alloc] initWithFrame:
+              CGRectMake(-0.5 * (windowBounds.size.height - windowBounds.size.width),
+                         0, windowBounds.size.height, windowBounds.size.height)] autorelease];
+			blankingView.backgroundColor = [UIColor blackColor];
+			[self.view.superview insertSubview:blankingView belowSubview:playbackView];
+			
+			[UIView animateWithDuration:0.25 animations:^{
+				playbackView.bounds = [self rotatedWindowBounds];
+				playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
+			} completion:^(BOOL complete){
+				[blankingView removeFromSuperview];
+			}];
+		}
+		else
+		{
+            //rotate without animation / same functionality like with animation
+			playbackView.bounds = [self rotatedWindowBounds];
+            playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
+		}
+	}
+	else
+	{
+		self.view.transform = CGAffineTransformIdentity;
+	}
+    
+    
+}
+
 #pragma mark -
 #pragma mark Actions
 
@@ -353,9 +525,17 @@ static NSString *timeStringForSeconds(Float64 seconds)
          animations:^{
              playbackView.frame = playbackView.window.bounds;
          }];
+        
+        //Add Observer for orientation change
+        [[NSNotificationCenter defaultCenter]
+         addObserver:self
+         selector:@selector(deviceRotated:)
+         name:UIDeviceOrientationDidChangeNotification
+         object:[UIDevice currentDevice]];
     }
     else 
     {
+        
         CGRect frame = [self.view
                         convertRect:playbackView.frame
                         fromView:playbackView.window];
@@ -367,13 +547,26 @@ static NSString *timeStringForSeconds(Float64 seconds)
          animations:^{
              playbackView.frame = self.view.frame;
          }];
+        
+        //Remove Observer for orientation change
+        [[NSNotificationCenter defaultCenter]
+         removeObserver:self
+         name:UIDeviceOrientationDidChangeNotification
+         object:[UIDevice currentDevice]];
     }
     
+    
+    
     [[UIApplication sharedApplication] 
-        setStatusBarHidden:fullscreen
-        withAnimation:UIStatusBarAnimationFade];
+     setStatusBarHidden:fullscreen
+     withAnimation:UIStatusBarAnimationFade];
     
     isFullscreen = fullscreen;
+    
+    
+    // Check the Device Orientation and rotate the application
+    [self deviceRotated:nil];
+    
     [self updateFullscreenButton];
 }
 
