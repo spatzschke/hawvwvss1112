@@ -40,8 +40,9 @@
         videoController = nil;
     }
     
-    NSURL *contentURL = [[NSURL alloc] initWithString:[movie objectForKey:@"path"]];
-    videoController = [[HSVideoViewController alloc] initWithContentURL:contentURL];
+    NSURL *videoURL = [[NSURL alloc] initWithString:[movie objectForKey:@"path"]];
+    videoController = [[HSVideoViewController alloc] initWithContentURL:videoURL];
+    
     self.movieTitle.text = [movie objectForKey:@"title"];
     videoController.view.frame = movieView.bounds;
     [movieView addSubview:videoController.view];
@@ -51,6 +52,7 @@
         [self.masterPopoverController dismissPopoverAnimated:YES];
     }
     
+    [videoURL release];
 }
 
 - (void)didReceiveMemoryWarning

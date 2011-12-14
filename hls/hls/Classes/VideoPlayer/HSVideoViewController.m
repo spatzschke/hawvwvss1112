@@ -72,9 +72,7 @@ static void *HSVideoPlayerLikelyToKeepUpObserverContext = &HSVideoPlayerLikelyTo
 #pragma mark Dealloc
 
 - (void)dealloc 
-{
-    NSLog(@"Hallo");
-    
+{    
     [self removeTimeObserver];
 
     [[NSNotificationCenter defaultCenter] removeObserver:self
@@ -116,7 +114,7 @@ static void *HSVideoPlayerLikelyToKeepUpObserverContext = &HSVideoPlayerLikelyTo
     
     // Add MPVolumeView
     MPVolumeView *volumeView = [[MPVolumeView alloc] init];
-    UISlider *volumeSlider = [[UISlider alloc] init];
+    UISlider *volumeSlider;
     
     // Find the Slider in MPVolumeView
 	for (UIView *view in [volumeView subviews]) {
@@ -136,6 +134,8 @@ static void *HSVideoPlayerLikelyToKeepUpObserverContext = &HSVideoPlayerLikelyTo
     
     [volumeControl removeFromSuperview];
     [volumeControl release];
+    volumeControl = nil;
+    
     volumeControl = [volumeSlider retain];
     
     [volumeSlider release];
@@ -625,8 +625,6 @@ static NSString *timeStringForSeconds(Float64 seconds)
 }
 
 -(void)viewDidDisappear:(BOOL)animated {
-    
-    NSLog(@"Fuck you");
     [self removeTimeObserver];
     [super viewDidDisappear:animated];
 }
@@ -839,7 +837,6 @@ static NSString *timeStringForSeconds(Float64 seconds)
                 
                 if (!isScrubbing) 
                 {
-                    NSLog(@"Ich bin es");
                     [self addTimeObserver];
                 }
             }
