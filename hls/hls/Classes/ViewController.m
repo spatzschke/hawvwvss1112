@@ -23,7 +23,7 @@
 {
     [super viewDidLoad];
     
-    NSURL *test = [[NSURL alloc] initWithString:@"http://dev.sebastian-schuler.info/vw/prog_index.m3u8"];
+    NSURL *test = [[NSURL alloc] initWithString:@"http://dev.sebastian-schuler.info/volkswagen/gti/WiFi/prog_index.m3u8"];
     HSVideoViewController *video = [[HSVideoViewController alloc] initWithContentURL:test];
     [video setShouldAutoplay:YES];
     video.view.frame = view2.bounds;
