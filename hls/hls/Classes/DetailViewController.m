@@ -14,15 +14,15 @@
 
 @implementation DetailViewController
 
-@synthesize detailItem = _detailItem;
-@synthesize masterPopoverController = _masterPopoverController;
+@synthesize detailItem;
+@synthesize masterPopoverController;
 @synthesize movieTitle;
 @synthesize movieView;
 
 - (void)dealloc
 {
-    [_detailItem release];
-    [_masterPopoverController release];
+    [detailItem release];
+    [masterPopoverController release];
     [movieTitle release];
     [movieView release];
     [super dealloc];
@@ -30,10 +30,11 @@
 
 #pragma mark - Managing the detail item
 
-- (void)showMovie:(NSMutableDictionary *)movie {
-    
-    if (videoController) 
+- (void)showMovie:(NSMutableDictionary *)movie 
+{    
+    if (videoController != nil) 
     {
+        NSLog(@"Und warum!!!");
         [videoController.view removeFromSuperview];
         [videoController release];
         videoController = nil;
