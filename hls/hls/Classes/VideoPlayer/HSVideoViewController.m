@@ -769,6 +769,8 @@ static NSString *timeStringForSeconds(Float64 seconds)
          object:[UIDevice currentDevice]];
     }
     
+    deviceOrientation = UIDeviceOrientationUnknown;
+    
     [[UIApplication sharedApplication] 
      setStatusBarHidden:fullscreen
      withAnimation:UIStatusBarAnimationFade];
