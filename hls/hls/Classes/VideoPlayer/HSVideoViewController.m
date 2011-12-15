@@ -267,188 +267,6 @@ static NSString *timeStringForSeconds(Float64 seconds)
         timeControl.minimumValue = 0.0;
 }
 
-#pragma mark Orientation
- ////////////////////////////////////////////////////////////
- //
- // Orientationhandling for normal and fullscreen view
- //
- ////////////////////////////////////////////////////////////
-
-//Handles the Rotation an the anchorpoint for the rotationanimation
-- (CGAffineTransform)orientationTransformFromSourceBounds:(CGRect)sourceBounds
-{
-    
-    UIDeviceOrientation orientation;
-    
-    // Check if the Rotation called from a Notification or is called from the fullScreenToogleButton
-    if([[UIDevice currentDevice] orientation] == UIDeviceOrientationUnknown) {
-        orientation = (UIDeviceOrientation)[[UIApplication sharedApplication] statusBarOrientation]; 
-    } else {
-        orientation = [[UIDevice currentDevice] orientation];
-    }
-    
-    // Where is the display, it is shown to the ground or the the sky
-	if (orientation == UIDeviceOrientationFaceDown || orientation == UIDeviceOrientationFaceUp)
-	{
-        NSLog(@"FaceDownUP"); 
-	}
-    
-    if (orientation == UIDeviceOrientationPortrait)
-	{
-        NSLog(@"Portrait"); 
-        deviceOrientation = UIDeviceOrientationPortrait;
-	}
-    
-    // Orientation for Protrait Upside Down
-	if (orientation == UIDeviceOrientationPortraitUpsideDown)
-	{
-		CGAffineTransform result;
-        deviceOrientation = UIDeviceOrientationPortraitUpsideDown;
-        
-        NSLog(@"Upside Down");
-        
-        ////set different rotationangle for normal and fullscreenview
-        
-        if(!isFullscreen) {
-            result = CGAffineTransformMakeRotation(2 * M_PI);
-        } else {
-            result = CGAffineTransformMakeRotation(M_PI);
-        }
-        
-        return result;
-	}
-    
-    // Orientation for Landscape Left
-	else if (orientation == UIDeviceOrientationLandscapeLeft)
-	{
-        NSLog(@"Landscape Left");
-        
-        CGAffineTransform result;
-        deviceOrientation = UIDeviceOrientationLandscapeLeft;
-        
-        if(!isFullscreen) {
-            result = CGAffineTransformMakeRotation(0 * M_PI);
-        } else {
-            result = CGAffineTransformMakeRotation(0.5 * M_PI);
-        }
-		
-        return result;
-	}
-    
-    // Orientation for Landscape Right
-	else if (orientation == UIDeviceOrientationLandscapeRight)
-	{
-        NSLog(@"Landscape Right");
-    
-        CGAffineTransform result;
-        deviceOrientation = UIDeviceOrientationLandscapeRight;
-        
-        if(!isFullscreen) {
-            result = CGAffineTransformMakeRotation(0 * M_PI);
-        } else {
-            result = CGAffineTransformMakeRotation(-0.5 * M_PI);
-        }
-		
-        return result;
-	}
-    
-    //If the Orientation Portrait do nothing an return the TransormIdentity
-	return CGAffineTransformIdentity;
-}
-
-- (CGRect)rotatedWindowBounds
-{
-    UIDeviceOrientation orientation;
-    
-    // Check if the Rotation called from a Notification or is called from the fullScreenToogleButton
-    if([[UIDevice currentDevice] orientation] == UIDeviceOrientationUnknown) {
-        orientation = (UIDeviceOrientation)[[UIApplication sharedApplication] statusBarOrientation]; 
-    } else {
-        orientation = [[UIDevice currentDevice] orientation];
-    }
-	
-	if (orientation == UIDeviceOrientationLandscapeLeft ||
-		orientation == UIDeviceOrientationLandscapeRight)
-	{
-        
-        //Different Viewsizes for normal and fullscreenview in Landscape Left and Right | Return the Bounds Rect 
-        if(!isFullscreen) {
-            CGRect windowBounds = self.view.bounds;
-            return CGRectMake(0, 0, windowBounds.size.width, windowBounds.size.height);	
-        } else {
-            
-            CGRect windowBounds = playbackView.bounds;
-            if (deviceOrientation == orientation) {
-                
-                return CGRectMake(0, 0, windowBounds.size.width, windowBounds.size.height);
-            }
-            
-            return CGRectMake(0, 0, windowBounds.size.height, windowBounds.size.width);
-        }
-	}
-    
-    //Different Viewsizes for normal and fullscreenview in Portrait | Return the Bounds Rect 
-    if(!isFullscreen) {
-        return self.view.bounds;
-    } else {
-        return self.view.window.bounds;
-    }
-    
-    
-    
-}
-
-// Method Called by Orientation Notification
-- (void)deviceRotated:(NSNotification *)aNotification
-{
-    // if a Notfication fired for rotation
-    if (aNotification)
-    {
-        UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
-        
-        if(orientation == UIDeviceOrientationFaceUp || orientation == UIDeviceOrientationFaceDown ||
-           orientation == deviceOrientation) 
-        {
-            return;
-        }
-        
-        CGRect windowBounds = playbackView.bounds;
-        CGRect blankingFrame = CGRectMake(
-                                    windowBounds.origin.x - (windowBounds.size.height * 0.5),
-                                    windowBounds.origin.y - (windowBounds.size.height * 0.5),
-                                    windowBounds.size.height * 2, 
-                                    windowBounds.size.height * 2
-                                );
-        UIView *blankingView = [[[UIView alloc] initWithFrame:blankingFrame] autorelease];
-        
-        blankingView.backgroundColor = [UIColor blackColor];
-        [self.view.window insertSubview:blankingView belowSubview:playbackView];
-    
-        [UIView animateWithDuration:0.25 
-        animations:^{
-            if(deviceOrientation == UIDeviceOrientationLandscapeRight && orientation == UIDeviceOrientationLandscapeLeft) 
-            {
-                playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
-            }
-            else if(deviceOrientation == UIDeviceOrientationLandscapeLeft && orientation == UIDeviceOrientationLandscapeRight) 
-            {
-                playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
-            }
-            playbackView.bounds = [self rotatedWindowBounds];
-            playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
-        } 
-        completion:^(BOOL complete){
-            [blankingView removeFromSuperview];
-        }];
-    }
-    else
-    {
-        //rotate without animation / same functionality like with animation
-        playbackView.bounds = [self rotatedWindowBounds];
-        playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
-    }
-}
-
 #pragma mark -
 #pragma mark Actions
 
@@ -521,7 +339,6 @@ static NSString *timeStringForSeconds(Float64 seconds)
 {
     UIImage *buttonImage;
     
-    NSLog(@"Hallo");
     if (isFullscreen)
         buttonImage = [UIImage imageNamed:@"fullscreen-exit"];
     else
@@ -728,62 +545,6 @@ static NSString *timeStringForSeconds(Float64 seconds)
     [timeControl setValue:0.0];
 }
 
--(void)setFullscreen:(BOOL)fullscreen
-{ 
-    if (fullscreen) 
-    {
-        CGRect frame = [playbackView.window
-                        convertRect:playbackView.frame
-                        fromView:self.view];
-		[playbackView.window addSubview:playbackView];
-		playbackView.frame = frame;
-        
-        [UIView animateWithDuration:0.4 
-         animations:^{
-             playbackView.frame = playbackView.window.bounds;
-         }];
-        
-        //Add Observer for orientation change
-        [[NSNotificationCenter defaultCenter] addObserver:self
-         selector:@selector(deviceRotated:)
-         name:UIDeviceOrientationDidChangeNotification
-         object:[UIDevice currentDevice]];
-    }
-    else 
-    {
-        
-        CGRect frame = [self.view
-                        convertRect:playbackView.frame
-                        fromView:playbackView.window];
-		playbackView.frame = frame;
-        [self.view addSubview:playbackView];
-        
-        [UIView animateWithDuration:0.4 
-         animations:^{
-             playbackView.frame = self.view.frame;
-         }];
-        
-        //Remove Observer for orientation change
-        [[NSNotificationCenter defaultCenter] removeObserver:self
-         name:UIDeviceOrientationDidChangeNotification
-         object:[UIDevice currentDevice]];
-    }
-    
-    deviceOrientation = UIDeviceOrientationUnknown;
-    
-    [[UIApplication sharedApplication] 
-     setStatusBarHidden:fullscreen
-     withAnimation:UIStatusBarAnimationFade];
-    
-    isFullscreen = fullscreen;
-    
-    
-    // Check the Device Orientation and rotate the application
-    [self deviceRotated:nil];
-    
-    [self updateFullscreenButton];
-}
-
 - (void)observeValueForKeyPath:(NSString*) keyPath 
                       ofObject:(id)object 
                         change:(NSDictionary*)change 
@@ -821,7 +582,7 @@ static NSString *timeStringForSeconds(Float64 seconds)
                     [loadingIndicator stopAnimating];
                     
                     [playbackView setNeedsDisplay];
-                
+                    
                     if (self.shouldAutoplay) 
                     {
                         [player play];
@@ -890,5 +651,205 @@ static NSString *timeStringForSeconds(Float64 seconds)
     
     return;
 }
+#pragma mark -
+#pragma mark Orientation
+////////////////////////////////////////////////////////////
+//
+// Orientationhandling for normal and fullscreen view
+//
+////////////////////////////////////////////////////////////
+
+//Handles the Rotation an the anchorpoint for the rotationanimation
+- (CGAffineTransform)orientationTransformFromSourceBounds
+{
+    
+    UIDeviceOrientation orientation = (UIDeviceOrientation)[[UIApplication sharedApplication] statusBarOrientation];;
+    
+    if (orientation == UIDeviceOrientationPortrait)
+	{
+        deviceOrientation = UIDeviceOrientationPortrait;
+	}
+    
+    // Orientation for Protrait Upside Down
+	if (orientation == UIDeviceOrientationPortraitUpsideDown)
+	{
+		CGAffineTransform result;
+        deviceOrientation = UIDeviceOrientationPortraitUpsideDown;
+        
+        ////set different rotationangle for normal and fullscreenview
+        
+        if(!isFullscreen) {
+            result = CGAffineTransformMakeRotation(2 * M_PI);
+        } else {
+            result = CGAffineTransformMakeRotation(M_PI);
+        }
+        
+        return result;
+	}
+    
+    // Orientation for Landscape Left
+	else if (orientation == UIDeviceOrientationLandscapeLeft)
+	{
+        CGAffineTransform result;
+        deviceOrientation = UIDeviceOrientationLandscapeLeft;
+        
+        if(!isFullscreen) {
+            result = CGAffineTransformMakeRotation(0 * M_PI);
+        } else {
+            result = CGAffineTransformMakeRotation(0.5 * M_PI);
+        }
+		
+        return result;
+	}
+    
+    // Orientation for Landscape Right
+	else if (orientation == UIDeviceOrientationLandscapeRight)
+	{
+        CGAffineTransform result;
+        deviceOrientation = UIDeviceOrientationLandscapeRight;
+        
+        if(!isFullscreen) {
+            result = CGAffineTransformMakeRotation(0 * M_PI);
+        } else {
+            result = CGAffineTransformMakeRotation(-0.5 * M_PI);
+        }
+		
+        return result;
+	}
+    
+    //If the Orientation Portrait do nothing an return the TransormIdentity
+	return CGAffineTransformIdentity;
+}
+
+- (CGRect)rotatedWindowBounds
+{
+    UIDeviceOrientation orientation = (UIDeviceOrientation)[[UIApplication sharedApplication] statusBarOrientation]; 
+    
+	if (orientation == UIDeviceOrientationLandscapeLeft ||
+		orientation == UIDeviceOrientationLandscapeRight)
+	{
+        //Different Viewsizes for normal and fullscreenview in Landscape Left and Right | Return the Bounds Rect 
+        if(!isFullscreen) {
+            CGRect windowBounds = self.view.bounds;
+            return CGRectMake(0, 0, windowBounds.size.width, windowBounds.size.height);	
+        } else {
+            
+            CGRect windowBounds = playbackView.bounds;
+            if (deviceOrientation == orientation) {
+                
+                return CGRectMake(0, 0, windowBounds.size.width, windowBounds.size.height);
+            }
+            
+            return CGRectMake(0, 0, windowBounds.size.height, windowBounds.size.width);
+        }
+	}
+    
+    //Different Viewsizes for normal and fullscreenview in Portrait | Return the Bounds Rect 
+    if(!isFullscreen) {
+        return self.view.bounds;
+    } else {
+        return self.view.window.bounds;
+    }
+}
+
+// Method Called by Orientation Notification
+- (void)deviceRotated:(NSNotification *)aNotification
+{
+    // if a Notfication fired for rotation
+    if (aNotification)
+    {
+        UIDeviceOrientation orientation = (UIDeviceOrientation)[[UIApplication sharedApplication] statusBarOrientation]; 
+        
+        if(orientation == UIDeviceOrientationFaceUp || orientation == UIDeviceOrientationFaceDown ||
+           orientation == deviceOrientation) 
+        {
+            return;
+        }
+        
+        CGRect windowBounds = playbackView.bounds;
+        CGRect blankingFrame = CGRectMake(
+                                          windowBounds.origin.x - (windowBounds.size.height * 0.5),
+                                          windowBounds.origin.y - (windowBounds.size.height * 0.5),
+                                          windowBounds.size.height * 2, 
+                                          windowBounds.size.height * 2
+                                          );
+        UIView *blankingView = [[[UIView alloc] initWithFrame:blankingFrame] autorelease];
+        
+        blankingView.backgroundColor = [UIColor blackColor];
+        [self.view.window insertSubview:blankingView belowSubview:playbackView];
+        
+        [UIView animateWithDuration:0.25 
+                         animations:^{
+                             playbackView.bounds = [self rotatedWindowBounds];
+                             playbackView.transform = [self orientationTransformFromSourceBounds];
+                         } 
+                         completion:^(BOOL complete){
+                             [blankingView removeFromSuperview];
+                         }];
+    }
+    else
+    {
+        //rotate without animation / same functionality like with animation
+        playbackView.bounds = [self rotatedWindowBounds];
+        playbackView.transform = [self orientationTransformFromSourceBounds];
+    }
+}
+
+-(void)setFullscreen:(BOOL)fullscreen
+{ 
+    if (fullscreen) 
+    {
+        CGRect frame = [playbackView.window
+                        convertRect:playbackView.frame
+                        fromView:self.view];
+		[playbackView.window addSubview:playbackView];
+		playbackView.frame = frame;
+        
+        [UIView animateWithDuration:0.4 
+         animations:^{
+             playbackView.frame = playbackView.window.bounds;
+         }];
+        
+        //Add Observer for orientation change
+        [[NSNotificationCenter defaultCenter] addObserver:self
+         selector:@selector(deviceRotated:)
+         name:UIDeviceOrientationDidChangeNotification
+         object:[UIDevice currentDevice]];
+    }
+    else 
+    {
+        
+        CGRect frame = [self.view
+                        convertRect:playbackView.frame
+                        fromView:playbackView.window];
+		playbackView.frame = frame;
+        [self.view addSubview:playbackView];
+        
+        [UIView animateWithDuration:0.4 
+         animations:^{
+             playbackView.frame = self.view.frame;
+         }];
+        
+        //Remove Observer for orientation change
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+         name:UIDeviceOrientationDidChangeNotification
+         object:[UIDevice currentDevice]];
+    }
+    
+    deviceOrientation = UIDeviceOrientationUnknown;
+    
+    [[UIApplication sharedApplication] 
+     setStatusBarHidden:fullscreen
+     withAnimation:UIStatusBarAnimationFade];
+    
+    isFullscreen = fullscreen;
+    
+    
+    // Check the Device Orientation and rotate the application
+    [self deviceRotated:nil];
+    
+    [self updateFullscreenButton];
+}
+
 
 @end
