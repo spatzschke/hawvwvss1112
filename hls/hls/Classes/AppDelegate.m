@@ -1,10 +1,11 @@
-//
-//  AppDelegate.m
-//  hls
-//
-//  Created by Sebastian Schuler on 14.12.11.
-//  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
-//
+/**
+ * AppDelegate.m
+ *
+ * Copyright 2011 
+ *   - Sebastian Schuler
+ *   - Jennifer Schoendorf
+ *   - Stan Patzschke
+ */
 
 #import "AppDelegate.h"
 

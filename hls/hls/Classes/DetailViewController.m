@@ -1,10 +1,11 @@
-//
-//  DetailViewController.m
-//  VWSplitView
-//
-//  Created by Jennifer Schöndorf on 10.12.11.
-//  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
-//
+/**
+ * DetailViewController.m
+ *
+ * Copyright 2011 
+ *   - Sebastian Schuler
+ *   - Jennifer Schoendorf
+ *   - Stan Patzschke
+ */
 
 #import "DetailViewController.h"
 
@@ -50,6 +51,11 @@
     if (self.masterPopoverController != nil) {
         [self.masterPopoverController dismissPopoverAnimated:YES];
     }
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(videoPlayerFinishReason:)
+                                                 name:HSVideoPlaybackDidFinishNotification
+                                               object:videoController];
     
     [videoURL release];
 }
@@ -98,6 +104,20 @@
 {
     // Return YES for supported orientations
     return YES;
+}
+
+- (void) videoPlayerFinishReason:(NSNotification*) aNotification 
+{
+    NSError *error = [[aNotification userInfo] objectForKey:@"error"];
+    
+    /* Display the error. */
+	UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:[error localizedDescription]
+														message:[error localizedFailureReason]
+													   delegate:nil
+											  cancelButtonTitle:@"OK"
+											  otherButtonTitles:nil];
+	[alertView show];
+	[alertView release];
 }
 
 #pragma mark - Split view

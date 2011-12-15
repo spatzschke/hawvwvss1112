@@ -1,10 +1,13 @@
-//
-//  PlaybackView.h
-//  hls
-//
-//  Created by Sebastian Schuler on 04.12.11.
-//  Copyright (c) 2011 commercetools.de. All rights reserved.
-//
+/**
+ * PlaybackView.h
+ * 
+ * Holds the video player and display output
+ *
+ * Copyright 2011 
+ *   - Sebastian Schuler
+ *   - Jennifer Schoendorf
+ *   - Stan Patzschke
+ */
 
 #import <UIKit/UIKit.h>
 

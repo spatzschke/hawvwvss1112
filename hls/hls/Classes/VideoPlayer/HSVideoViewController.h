@@ -54,18 +54,26 @@ typedef NSInteger HSVideoFinishReason;
     NSURL *videoURL;
 }
 
-@property(nonatomic, retain) NSURL *videoURL;
-
-// Indicates if a movie should automatically start playback when it is 
-// likely to finish uninterrupted based on e.g. network conditions. Defaults to NO.
+// Indicates if a movie should automatically start playback. Defaults to NO.
 @property(nonatomic) BOOL shouldAutoplay;
 
 // Determines how the content scales to fit the view. Defaults to AVLayerVideoGravityResizeAspect.
 @property(nonatomic, copy) NSString *scalingMode;
 
+// Returns a HSVideoViewController object initialized with the stream at the specified URL
 - (id)initWithContentURL:(NSURL *)url;
-- (void)setFullscreen:(BOOL)fullscreen;
+
+// Begins video playback
 - (void)play;
+
+// Pauses video playback
 - (void)pause;
 
 @end
+
+// Notifications
+
+// Posted when video playback ends.
+extern NSString *const HSVideoPlaybackDidFinishNotification;
+
+extern NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey;

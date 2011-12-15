@@ -1,10 +1,13 @@
-//
-//  XML.h
-//  VWSplitView
-//
-//  Created by Jennifer Schöndorf on 11.12.11.
-//  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
-//
+/**
+ * PlaylistParser.h
+ * 
+ * Responsible for loading and parsing xml asynchronously
+ *
+ * Copyright 2011 
+ *   - Sebastian Schuler
+ *   - Jennifer Schoendorf
+ *   - Stan Patzschke
+ */
 
 #import <Foundation/Foundation.h>
 #import "AsyncRequest.h"

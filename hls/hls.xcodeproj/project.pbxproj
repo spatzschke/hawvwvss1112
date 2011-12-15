@@ -125,9 +125,9 @@
 		9E31B5D41498D2880040249E = {
 			isa = PBXGroup;
 			children = (
-				9E31B5EA1498D2880040249E /* Supporting Files */,
-				9E31B60A1498D33D0040249E /* Resources */,
 				9E31B6091498D3140040249E /* Classes */,
+				9E31B60A1498D33D0040249E /* Resources */,
+				9E31B5EA1498D2880040249E /* Supporting Files */,
 				9E31B5E21498D2880040249E /* Frameworks */,
 				9E31B5E01498D2880040249E /* Products */,
 			);
