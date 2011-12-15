@@ -518,10 +518,10 @@ static NSString *timeStringForSeconds(Float64 seconds)
         
         //Add Observer for orientation change
         [[NSNotificationCenter defaultCenter]
-         addObserver:self
-         selector:@selector(deviceRotated:)
-         name:UIDeviceOrientationDidChangeNotification
-         object:[UIDevice currentDevice]];
+            addObserver:self
+                selector:@selector(deviceRotated:)
+                    name:UIDeviceOrientationDidChangeNotification
+                        object:[UIDevice currentDevice]];
     }
     else 
     {

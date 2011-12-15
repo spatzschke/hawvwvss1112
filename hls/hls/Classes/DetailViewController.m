@@ -34,7 +34,6 @@
 {    
     if (videoController != nil) 
     {
-        NSLog(@"Und warum!!!");
         [videoController.view removeFromSuperview];
         [videoController release];
         videoController = nil;
