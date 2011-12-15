@@ -1,10 +1,11 @@
-//
-//  MasterViewController.h
-//  VWSplitView
-//
-//  Created by Jennifer Schöndorf on 10.12.11.
-//  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
-//
+/**
+ * MasterViewController.h
+ *
+ * Copyright 2011 
+ *   - Sebastian Schuler
+ *   - Jennifer Schoendorf
+ *   - Stan Patzschke
+ */
 
 #import <UIKit/UIKit.h>
 #import "MovieCell.h"
