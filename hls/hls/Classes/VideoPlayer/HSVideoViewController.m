@@ -1,5 +1,5 @@
 /**
- * HSVideoViewController.h
+ * HSVideoViewController.m
  * 
  * Manages the playback of a movie from a network stream.
  *
@@ -27,30 +27,55 @@ static void *HSVideoPlayerItemStatusObserverContext = &HSVideoPlayerItemStatusOb
 static void *HSVideoPLayerBufferEmptyObserverContext = &HSVideoPLayerBufferEmptyObserverContext;
 static void *HSVideoPlayerLikelyToKeepUpObserverContext = &HSVideoPlayerLikelyToKeepUpObserverContext;
 
+// Notification
+NSString *const HSVideoPlaybackDidFinishNotification = @"HSVideoPlaybackDidFinishNotification";
+NSString *const HSVideoPlaybackDidFinishReasonUserInfoKey = @"HSVideoPlaybackDidFinishReasonUserInfoKey";
+
 #pragma mark -
 @interface HSVideoViewController (Player)
 
+// Convert TMTime to seconds
 - (Float64)secondsWithCMTimeOrZeroIfInvalid:(CMTime) time;
+
+// Returns the duration in seconds for the current playback
 - (Float64)durationInSeconds;
+
+// Returns the current time in seconds for the current playback
 - (Float64)currentTimeInSeconds;
+
+// Returns remaining time in seconds for the current playback
 - (Float64)timeRemainingInSeconds;
+
+// Register time observer for update controls
 - (void)addTimeObserver;
+
+// Remove the previously registered time observer
 - (void)removeTimeObserver;
+
+// Checks whether the movie player is playing
 - (BOOL)isPlaying;
+
+// Load the player asset asynchronously
 - (void)loadAssetAsync;
-- (void)assetFailedToPrepareForPlayback;
+
+// Called when an player asset fails to prepare for playback
+- (void)assetFailedToPrepareForPlayback:(NSError *)error;
+
+// Prepares the player for playback, asynchronously
 - (void)prepareToPlayAsset:(AVURLAsset *)asset withKeys:(NSArray *)requestedKeys;
+
+// Causes the movie player to enter or exit full-screen mode
+- (void)setFullscreen:(BOOL)fullscreen;
 
 @end
 
 @implementation HSVideoViewController
 
-@synthesize videoURL;
 @synthesize shouldAutoplay;
 @synthesize scalingMode;
 
 #pragma mark -
-#pragma mark Init
+#pragma mark init / dealloc
 
 - (id)initWithContentURL:(NSURL *)url 
 { 
@@ -63,21 +88,23 @@ static void *HSVideoPlayerLikelyToKeepUpObserverContext = &HSVideoPlayerLikelyTo
         
         self.shouldAutoplay = NO;
         self.scalingMode = @"AVLayerVideoGravityResizeAspect";
-        [self setVideoURL:url];
+        
+        videoURL = [url copy];
+        
+        [self loadAssetAsync];
+
     }
     
     return self;
 }
-
-#pragma mark Dealloc
 
 - (void)dealloc 
 {    
     [self removeTimeObserver];
 
     [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:AVPlayerItemDidPlayToEndTimeNotification
-                                                  object:nil];
+                            name:AVPlayerItemDidPlayToEndTimeNotification
+                            object:nil];
     
     [player removeObserver:self forKeyPath:kCurrentItemKey];
     [player removeObserver:self forKeyPath:kRateKey];
@@ -187,6 +214,11 @@ static void *HSVideoPlayerLikelyToKeepUpObserverContext = &HSVideoPlayerLikelyTo
     [super viewDidUnload];
 }
 
+-(void)viewDidDisappear:(BOOL)animated {
+    [self removeTimeObserver];
+    [super viewDidDisappear:animated];
+}
+
 #pragma mark UI Updates
 
 static NSString *timeStringForSeconds(Float64 seconds) 
@@ -255,8 +287,15 @@ static NSString *timeStringForSeconds(Float64 seconds)
         orientation = [[UIDevice currentDevice] orientation];
     }
     
+    // Where is the display, it is shown to the ground or the the sky
+	if (orientation == UIDeviceOrientationFaceDown || orientation == UIDeviceOrientationFaceUp)
+	{
+        NSLog(@"FaceDownUP"); 
+	}
+    
     if (orientation == UIDeviceOrientationPortrait)
 	{
+        NSLog(@"Portrait"); 
         deviceOrientation = UIDeviceOrientationPortrait;
 	}
     
@@ -265,6 +304,8 @@ static NSString *timeStringForSeconds(Float64 seconds)
 	{
 		CGAffineTransform result;
         deviceOrientation = UIDeviceOrientationPortraitUpsideDown;
+        
+        NSLog(@"Upside Down");
         
         ////set different rotationangle for normal and fullscreenview
         
@@ -280,6 +321,8 @@ static NSString *timeStringForSeconds(Float64 seconds)
     // Orientation for Landscape Left
 	else if (orientation == UIDeviceOrientationLandscapeLeft)
 	{
+        NSLog(@"Landscape Left");
+        
         CGAffineTransform result;
         deviceOrientation = UIDeviceOrientationLandscapeLeft;
         
@@ -295,6 +338,7 @@ static NSString *timeStringForSeconds(Float64 seconds)
     // Orientation for Landscape Right
 	else if (orientation == UIDeviceOrientationLandscapeRight)
 	{
+        NSLog(@"Landscape Right");
     
         CGAffineTransform result;
         deviceOrientation = UIDeviceOrientationLandscapeRight;
@@ -357,48 +401,52 @@ static NSString *timeStringForSeconds(Float64 seconds)
 // Method Called by Orientation Notification
 - (void)deviceRotated:(NSNotification *)aNotification
 {
-        // if a Notfication fired for rotation
-		if (aNotification)
-		{			
-            
-            UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
-            if(orientation == deviceOrientation || orientation == UIDeviceOrientationFaceUp || orientation == UIDeviceOrientationFaceDown) {} else {
-            
-                CGRect windowBounds = playbackView.bounds;
-                UIView *blankingView = [[[UIView alloc] initWithFrame:
-                CGRectMake(windowBounds.origin.x - (windowBounds.size.height * 0.5), 
-                           windowBounds.origin.y - (windowBounds.size.height * 0.5), 
-                           windowBounds.size.height*2, 
-                           windowBounds.size.height*2
-                           )] autorelease];
-                
-                blankingView.backgroundColor = [UIColor blackColor];
-                [self.view.superview insertSubview:blankingView belowSubview:playbackView];
-			
-                [UIView animateWithDuration:9.25 animations:^{
-                    
-                    if(deviceOrientation == UIDeviceOrientationLandscapeRight && orientation == UIDeviceOrientationLandscapeLeft) {
-                        
-                        playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
-                    }
-                    if(deviceOrientation == UIDeviceOrientationLandscapeLeft && orientation == UIDeviceOrientationLandscapeRight) {
-                        playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
-                    }
-                    
-                    playbackView.bounds = [self rotatedWindowBounds];
-                    playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
-                } completion:^(BOOL complete){
-                    [blankingView removeFromSuperview];
-                }];
+    // if a Notfication fired for rotation
+    if (aNotification)
+    {
+        UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
+        
+        if(orientation == UIDeviceOrientationFaceUp || orientation == UIDeviceOrientationFaceDown ||
+           orientation == deviceOrientation) 
+        {
+            return;
+        }
+        
+        CGRect windowBounds = playbackView.bounds;
+        CGRect blankingFrame = CGRectMake(
+                                    windowBounds.origin.x - (windowBounds.size.height * 0.5),
+                                    windowBounds.origin.y - (windowBounds.size.height * 0.5),
+                                    windowBounds.size.height * 2, 
+                                    windowBounds.size.height * 2
+                                );
+        UIView *blankingView = [[[UIView alloc] initWithFrame:blankingFrame] autorelease];
+        
+        blankingView.backgroundColor = [UIColor blackColor];
+        [self.view.window insertSubview:blankingView belowSubview:playbackView];
+    
+        [UIView animateWithDuration:0.25 
+        animations:^{
+            if(deviceOrientation == UIDeviceOrientationLandscapeRight && orientation == UIDeviceOrientationLandscapeLeft) 
+            {
+                playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
             }
-		}
-		else
-		{
-            //rotate without animation / same functionality like with animation
-			playbackView.bounds = [self rotatedWindowBounds];
+            else if(deviceOrientation == UIDeviceOrientationLandscapeLeft && orientation == UIDeviceOrientationLandscapeRight) 
+            {
+                playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
+            }
+            playbackView.bounds = [self rotatedWindowBounds];
             playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
-		}
-	
+        } 
+        completion:^(BOOL complete){
+            [blankingView removeFromSuperview];
+        }];
+    }
+    else
+    {
+        //rotate without animation / same functionality like with animation
+        playbackView.bounds = [self rotatedWindowBounds];
+        playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
+    }
 }
 
 #pragma mark -
@@ -438,7 +486,6 @@ static NSString *timeStringForSeconds(Float64 seconds)
     isScrubbing = NO;
 }
 
-/* Set the player current time to match the scrubber position. */
 - (IBAction)scrubValueChanged:(id)sender
 {
 	if ([sender isKindOfClass:[UISlider class]])
@@ -474,10 +521,12 @@ static NSString *timeStringForSeconds(Float64 seconds)
 {
     UIImage *buttonImage;
     
+    NSLog(@"Hallo");
     if (isFullscreen)
         buttonImage = [UIImage imageNamed:@"fullscreen-exit"];
     else
-        buttonImage = [UIImage imageNamed:@"fullscreen-exit"];
+        buttonImage = [UIImage imageNamed:@"fullscreen-enter"];
+    
     
     [fullscreenButton setImage:buttonImage forState:UIControlStateNormal];
 }
@@ -492,80 +541,6 @@ static NSString *timeStringForSeconds(Float64 seconds)
 {
 	[player pause];
     [self updatePlayPauseButton];
-}
-
--(void)setFullscreen:(BOOL)fullscreen
-{    
-    if (fullscreen) 
-    {
-        CGRect frame = [playbackView.window
-                        convertRect:playbackView.frame
-                        fromView:self.view];
-		[playbackView.window addSubview:playbackView];
-		playbackView.frame = frame;
-        
-        [UIView
-         animateWithDuration:0.4 
-         animations:^{
-             playbackView.frame = playbackView.window.bounds;
-         }];
-        
-        //Add Observer for orientation change
-        [[NSNotificationCenter defaultCenter]
-         addObserver:self
-         selector:@selector(deviceRotated:)
-         name:UIDeviceOrientationDidChangeNotification
-         object:[UIDevice currentDevice]];
-    }
-    else 
-    {
-        
-        CGRect frame = [self.view
-                        convertRect:playbackView.frame
-                        fromView:playbackView.window];
-		playbackView.frame = frame;
-        [self.view addSubview:playbackView];
-        
-        [UIView
-         animateWithDuration:0.4 
-         animations:^{
-             playbackView.frame = self.view.frame;
-         }];
-        
-        //Remove Observer for orientation change
-        [[NSNotificationCenter defaultCenter]
-         removeObserver:self
-         name:UIDeviceOrientationDidChangeNotification
-         object:[UIDevice currentDevice]];
-        
-        
-    }
-    
-    deviceOrientation = UIDeviceOrientationUnknown;
-    
-    [[UIApplication sharedApplication] 
-     setStatusBarHidden:fullscreen
-     withAnimation:UIStatusBarAnimationFade];
-    
-    isFullscreen = fullscreen;
-    
-    
-    // Check the Device Orientation and rotate the application
-    [self deviceRotated:nil];
-    
-    [self updateFullscreenButton];
-}
-
--(void)setVideoURL:(NSURL *)url 
-{
-    if (videoURL) 
-    {
-        [videoURL release];
-        videoURL = nil;
-    }
-    
-    videoURL = [url retain];
-    [self loadAssetAsync];
 }
 
 @end
@@ -609,7 +584,6 @@ static NSString *timeStringForSeconds(Float64 seconds)
     }
 }
 
-/* Cancels the previously registered time observer. */
 -(void)removeTimeObserver
 {
 	if (timeObserver)
@@ -620,12 +594,6 @@ static NSString *timeStringForSeconds(Float64 seconds)
 	}
 }
 
--(void)viewDidDisappear:(BOOL)animated {
-    [self removeTimeObserver];
-    [super viewDidDisappear:animated];
-}
-
-
 - (BOOL)isPlaying
 {
 	return (rateToRestoreAfterScrubbing != 0.f || [player rate] != 0.f);
@@ -633,32 +601,34 @@ static NSString *timeStringForSeconds(Float64 seconds)
 
 - (void) loadAssetAsync 
 {
-    /*
-     Create an asset for inspection of a resource referenced by a given URL.
-     Load the values for the asset keys "tracks", "playable".
+    /**
+     * Create an asset for inspection of a resource referenced by a given URL.
+     * Load the values for the asset keys "tracks", "playable".
      */
-    AVURLAsset *asset = [AVURLAsset URLAssetWithURL:self.videoURL options:nil];
+    AVURLAsset *asset = [AVURLAsset URLAssetWithURL:videoURL options:nil];
     NSArray *requestedKeys = [NSArray arrayWithObjects:kTracksKey, kPlayableKey, nil];
     
-    /* Tells the asset to load the values of any of the specified keys that are not already loaded. */
+    // Tells the asset to load the values of any of the specified keys that are not already loaded.
     [asset loadValuesAsynchronouslyForKeys:requestedKeys completionHandler:
      ^{	
          dispatch_async( dispatch_get_main_queue(), 
                         ^{
-                            /* IMPORTANT: Must dispatch to main queue in order to operate on the AVPlayer and AVPlayerItem. */
+                            // IMPORTANT: Must dispatch to main queue in order to operate on the AVPlayer and AVPlayerItem.
                             [self prepareToPlayAsset:asset withKeys:requestedKeys];
                         });
      }];
 }
 
-/* Called when the player item has played to its end time. */
+/** 
+ * Called when the player item has played to its end time. 
+ */
 - (void) playerItemDidReachEnd:(NSNotification*) aNotification 
 {
     [player seekToTime:kCMTimeZero];
     [player setRate:0.f];
 }
 
--(void)assetFailedToPrepareForPlayback
+-(void)assetFailedToPrepareForPlayback:(NSError *)error
 {    
     [self removeTimeObserver];
     [self updateTimeScrubber];
@@ -667,65 +637,52 @@ static NSString *timeStringForSeconds(Float64 seconds)
     [playButton setEnabled:NO];
     
     [loadingIndicator stopAnimating];
+    
+    NSNumber *stopCode = [NSNumber numberWithInt: HSVideoFinishReasonPlaybackError];
+    NSMutableDictionary *errorInfo = [NSMutableDictionary dictionary];
+    
+    [errorInfo setObject:stopCode forKey:HSVideoPlaybackDidFinishReasonUserInfoKey];
+    [errorInfo setObject:error forKey:@"error"];
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:HSVideoPlaybackDidFinishNotification 
+                                                        object:self userInfo:errorInfo];
 }
 
-/*
- Invoked at the completion of the loading of the values for all keys on the asset that we require.
- Checks whether loading was successfull and whether the asset is playable.
- If so, sets up an AVPlayerItem and an AVPlayer to play the asset.
+/**
+ * Invoked at the completion of the loading of the values for all keys on the asset that required.
  */
 - (void)prepareToPlayAsset:(AVURLAsset *)asset withKeys:(NSArray *)requestedKeys
 {
-    /* Make sure that the value of each key has loaded successfully. */
+    // Make sure that the value of each key has loaded successfully.
 	for (NSString *thisKey in requestedKeys)
 	{
 		NSError *error = nil;
 		AVKeyValueStatus keyStatus = [asset statusOfValueForKey:thisKey error:&error];
 		if (keyStatus == AVKeyValueStatusFailed)
-		{
-            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Verbindungsfehler"
-                                                                message:@"Es konnte keine Verbindung zum Server hergestellt werden."
-                                                               delegate:nil
-                                                      cancelButtonTitle:@"OK"
-                                                      otherButtonTitles:nil];
-            [alertView show];
-            [alertView release];
-            
-            [self assetFailedToPrepareForPlayback];
+		{            
+            [self assetFailedToPrepareForPlayback:error];
 			return;
 		}
 	}
     
     if (!asset.playable)
     {
-        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Fehler"
-                                                            message:@"Die Datei kann nicht abgespielt werden."
-                                                           delegate:nil
-                                                  cancelButtonTitle:@"OK"
-                                                  otherButtonTitles:nil];
-        [alertView show];
-        [alertView release];
+        NSString *localizedDescription = NSLocalizedString(@"Item cannot be played", @"Item cannot be played description");
+		NSString *localizedFailureReason = NSLocalizedString(@"The assets tracks were loaded, but could not be made playable.", @"Item cannot be played failure reason");
+		NSDictionary *errorDict = [NSDictionary dictionaryWithObjectsAndKeys:
+								   localizedDescription, NSLocalizedDescriptionKey, 
+								   localizedFailureReason, NSLocalizedFailureReasonErrorKey, 
+								   nil];
+		NSError *error = [NSError errorWithDomain:@"HSVideoPlayer" code:0 userInfo:errorDict];
     
-        [self assetFailedToPrepareForPlayback];
+        [self assetFailedToPrepareForPlayback:error];
         return;
     }
 	
-    /* Stop observing our prior AVPlayerItem, if we have one. */
-    if (playerItem)
-    {
-        /* Remove existing player item key value observers and notifications. */
-        
-        [playerItem removeObserver:self forKeyPath:kStatusKey];            
-		
-        [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                        name:AVPlayerItemDidPlayToEndTimeNotification
-                                                      object:playerItem];
-    }
-	
-    /* Create a new instance of AVPlayerItem from the now successfully loaded AVAsset. */
+    // Create a new instance of AVPlayerItem from the now successfully loaded AVAsset.
     playerItem = [[AVPlayerItem alloc] initWithAsset:asset];
     
-    /* Observe the player item "status" key to determine when it is ready to play. */
+    // Observe the player item "status" key to determine when it is ready to play.
     [playerItem addObserver:self 
                  forKeyPath:kStatusKey 
                     options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
@@ -741,48 +698,88 @@ static NSString *timeStringForSeconds(Float64 seconds)
                     options:NSKeyValueObservingOptionNew 
                     context:HSVideoPlayerLikelyToKeepUpObserverContext];
 
-    /* When the player item has played to its end time we'll toggle
-     the movie controller Pause button to be the Play button */
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(playerItemDidReachEnd:)
-                                                 name:AVPlayerItemDidPlayToEndTimeNotification
-                                               object:playerItem];
+                            selector:@selector(playerItemDidReachEnd:)
+                            name:AVPlayerItemDidPlayToEndTimeNotification
+                            object:playerItem];
     
-    /* Create new player, if we don't already have one. */
-    if (!player)
-    {
-        /* Get a new AVPlayer initialized to play the specified player item. */
-        player = [[AVPlayer alloc] initWithPlayerItem:playerItem];
-        
-        /* Do nothing if the item has finished playing */
-        [player setActionAtItemEnd:AVPlayerActionAtItemEndNone];
-		
-        /* Observe the AVPlayer "currentItem" property to find out when any 
-         AVPlayer replaceCurrentItemWithPlayerItem: replacement will/did 
-         occur.*/
-        [player addObserver:self 
-                 forKeyPath:kCurrentItemKey 
-                    options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
-                    context:HSVideoCurrentItemObserverContext];
-        
-        /* Observe the AVPlayer "rate" property to update the scrubber control. */
-        [player addObserver:self
-                 forKeyPath:kRateKey 
-                    options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
-                    context:HSVideoRateObserverContext];
-    }
+    // Get a new AVPlayer initialized to play the specified player item.
+    player = [[AVPlayer alloc] initWithPlayerItem:playerItem];
     
-    /* Make our new AVPlayerItem the AVPlayer's current item. */
-    if (player.currentItem != playerItem)
-    {
-        /* Replace the player item with a new player item. The item replacement occurs 
-         asynchronously; observe the currentItem property to find out when the 
-         replacement will/did occur*/
-        [player replaceCurrentItemWithPlayerItem:playerItem];
-        [self updatePlayPauseButton];
-    }
+    // Do nothing if the item has finished playing
+    [player setActionAtItemEnd:AVPlayerActionAtItemEndNone];
+    
+    /* Observe the AVPlayer "currentItem" property to find out when any 
+     AVPlayer replaceCurrentItemWithPlayerItem: replacement will/did 
+     occur.*/
+    [player addObserver:self 
+             forKeyPath:kCurrentItemKey 
+                options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
+                context:HSVideoCurrentItemObserverContext];
+    
+    // Observe the AVPlayer "rate" property to update the scrubber control.
+    [player addObserver:self
+             forKeyPath:kRateKey 
+                options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
+                context:HSVideoRateObserverContext];
+    
+    [player replaceCurrentItemWithPlayerItem:playerItem];
     
     [timeControl setValue:0.0];
+}
+
+-(void)setFullscreen:(BOOL)fullscreen
+{ 
+    if (fullscreen) 
+    {
+        CGRect frame = [playbackView.window
+                        convertRect:playbackView.frame
+                        fromView:self.view];
+		[playbackView.window addSubview:playbackView];
+		playbackView.frame = frame;
+        
+        [UIView animateWithDuration:0.4 
+         animations:^{
+             playbackView.frame = playbackView.window.bounds;
+         }];
+        
+        //Add Observer for orientation change
+        [[NSNotificationCenter defaultCenter] addObserver:self
+         selector:@selector(deviceRotated:)
+         name:UIDeviceOrientationDidChangeNotification
+         object:[UIDevice currentDevice]];
+    }
+    else 
+    {
+        
+        CGRect frame = [self.view
+                        convertRect:playbackView.frame
+                        fromView:playbackView.window];
+		playbackView.frame = frame;
+        [self.view addSubview:playbackView];
+        
+        [UIView animateWithDuration:0.4 
+         animations:^{
+             playbackView.frame = self.view.frame;
+         }];
+        
+        //Remove Observer for orientation change
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+         name:UIDeviceOrientationDidChangeNotification
+         object:[UIDevice currentDevice]];
+    }
+    
+    [[UIApplication sharedApplication] 
+     setStatusBarHidden:fullscreen
+     withAnimation:UIStatusBarAnimationFade];
+    
+    isFullscreen = fullscreen;
+    
+    
+    // Check the Device Orientation and rotate the application
+    [self deviceRotated:nil];
+    
+    [self updateFullscreenButton];
 }
 
 - (void)observeValueForKeyPath:(NSString*) keyPath 
@@ -791,7 +788,7 @@ static NSString *timeStringForSeconds(Float64 seconds)
                        context:(void*)context
 {
     
-	/* AVPlayerItem "status" property value observer. */
+	// AVPlayerItem "status" property value observer.
     if (context == HSVideoPlayerItemStatusObserverContext)
 	{           
         AVPlayerStatus status = [[change objectForKey:NSKeyValueChangeNewKey] integerValue];
@@ -840,53 +837,42 @@ static NSString *timeStringForSeconds(Float64 seconds)
                 
             case AVPlayerStatusFailed:
             {
-                
-                UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Fehler"
-                                                                    message:@"Die Datei kann nicht mehr abgespielt werden."
-                                                                   delegate:nil
-                                                          cancelButtonTitle:@"OK"
-                                                          otherButtonTitles:nil];
-                [alertView show];
-                [alertView release];
-                
-                [self assetFailedToPrepareForPlayback];
+                AVPlayerItem *thePlayerItem = (AVPlayerItem *)object;
+                [self assetFailedToPrepareForPlayback:thePlayerItem.error];
             }
                 break;
         }
 	}
-	/* AVPlayer "rate" property value observer. */
+	// AVPlayer "rate" property value observer.
 	else if (context == HSVideoRateObserverContext)
 	{
         [self updatePlayPauseButton];
 	}
-    /* AVPlayer "currentItem" buffer is empty observer */
+    // AVPlayer "currentItem" buffer is empty observer
     else if (context == HSVideoPLayerBufferEmptyObserverContext) 
     {
         if (!isScrubbing)
             [loadingIndicator startAnimating];
     }
-    /* AVPlayer "currentItem" is likely to keep up observer */
+    // AVPlayer "currentItem" is likely to keep up observer
     else if (context == HSVideoPlayerLikelyToKeepUpObserverContext)
     {
         if (!isScrubbing) {
             [loadingIndicator stopAnimating];
         }
     }
-	/* AVPlayer "currentItem" property observer. 
-     Called when the AVPlayer replaceCurrentItemWithPlayerItem: 
-     replacement will/did occur. */
+	// AVPlayer "currentItem" property observer. 
 	else if (context == HSVideoCurrentItemObserverContext)
 	{
         AVPlayerItem *newPlayerItem = [change objectForKey:NSKeyValueChangeNewKey];
         
-        /* New player item null? */
+        // New player item null? 
         if (newPlayerItem == (id)[NSNull null])
         {            
             [playButton setEnabled:NO];
             [timeControl setEnabled:NO];
             
-        }
-        else /* Replacement of player currentItem has occurred */
+        } else  // Replacement of player currentItem has occurred
         {
             [playbackView setPlayer:player];
             
