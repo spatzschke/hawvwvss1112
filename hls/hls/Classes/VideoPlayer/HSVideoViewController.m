@@ -236,11 +236,11 @@ static NSString *timeStringForSeconds(Float64 seconds)
 }
 
 #pragma mark Orientation
-/*////////////////////////////////////////////////////////////
+ ////////////////////////////////////////////////////////////
  //
  // Orientationhandling for normal and fullscreen view
  //
- ////////////////////////////////////////////////////////////*/
+ ////////////////////////////////////////////////////////////
 
 //Handles the Rotation an the anchorpoint for the rotationanimation
 - (CGAffineTransform)orientationTransformFromSourceBounds:(CGRect)sourceBounds
@@ -256,24 +256,22 @@ static NSString *timeStringForSeconds(Float64 seconds)
     }
     
     // Where is the display, it is shown to the ground or the the sky
-	if (orientation == UIDeviceOrientationFaceDown)
+	if (orientation == UIDeviceOrientationFaceDown || orientation == UIDeviceOrientationFaceUp)
 	{
-        NSLog(@"FaceDown"); 
-        return CGAffineTransformIdentity;
-        
+        NSLog(@"FaceDownUP"); 
 	}
     
-    if (orientation == UIDeviceOrientationFaceUp)
+    if (orientation == UIDeviceOrientationPortrait)
 	{
-        NSLog(@"FaceUp"); 
-        return CGAffineTransformIdentity;
-        
+        NSLog(@"Portrait"); 
+        deviceOrientation = UIDeviceOrientationPortrait;
 	}
     
     // Orientation for Protrait Upside Down
 	if (orientation == UIDeviceOrientationPortraitUpsideDown)
 	{
 		CGAffineTransform result;
+        deviceOrientation = UIDeviceOrientationPortraitUpsideDown;
         
         NSLog(@"Upside Down");
         
@@ -294,6 +292,7 @@ static NSString *timeStringForSeconds(Float64 seconds)
         NSLog(@"Landscape Left");
         
         CGAffineTransform result;
+        deviceOrientation = UIDeviceOrientationLandscapeLeft;
         
         if(!isFullscreen) {
             result = CGAffineTransformMakeRotation(0 * M_PI);
@@ -307,17 +306,15 @@ static NSString *timeStringForSeconds(Float64 seconds)
     // Orientation for Landscape Right
 	else if (orientation == UIDeviceOrientationLandscapeRight)
 	{
-        NSLog(@"Ladnscape Right");
-        
-		CGRect windowBounds;
+        NSLog(@"Landscape Right");
+    
         CGAffineTransform result;
+        deviceOrientation = UIDeviceOrientationLandscapeRight;
         
         if(!isFullscreen) {
             result = CGAffineTransformMakeRotation(0 * M_PI);
-            windowBounds = self.view.window.bounds;
         } else {
             result = CGAffineTransformMakeRotation(-0.5 * M_PI);
-            windowBounds = playbackView.bounds;
         }
 		
         return result;
@@ -337,12 +334,6 @@ static NSString *timeStringForSeconds(Float64 seconds)
     } else {
         orientation = [[UIDevice currentDevice] orientation];
     }
-    
-	if (orientation == UIDeviceOrientationFaceUp ||
-		orientation == UIDeviceOrientationFaceDown)
-	{
-		orientation = (UIDeviceOrientation)[UIApplication sharedApplication].statusBarOrientation;
-	}
 	
 	if (orientation == UIDeviceOrientationLandscapeLeft ||
 		orientation == UIDeviceOrientationLandscapeRight)
@@ -353,7 +344,13 @@ static NSString *timeStringForSeconds(Float64 seconds)
             CGRect windowBounds = self.view.bounds;
             return CGRectMake(0, 0, windowBounds.size.width, windowBounds.size.height);	
         } else {
+            
             CGRect windowBounds = playbackView.bounds;
+            if (deviceOrientation == orientation) {
+                
+                return CGRectMake(0, 0, windowBounds.size.width, windowBounds.size.height);
+            }
+            
             return CGRectMake(0, 0, windowBounds.size.height, windowBounds.size.width);
         }
 	}
@@ -372,25 +369,40 @@ static NSString *timeStringForSeconds(Float64 seconds)
 // Method Called by Orientation Notification
 - (void)deviceRotated:(NSNotification *)aNotification
 {
-	if (playbackView)
-	{
         // if a Notfication fired for rotation
 		if (aNotification)
 		{			
-            CGRect windowBounds = playbackView.window.bounds;
-			UIView *blankingView =
-            [[[UIView alloc] initWithFrame:
-              CGRectMake(-0.5 * (windowBounds.size.height - windowBounds.size.width),
-                         0, windowBounds.size.height, windowBounds.size.height)] autorelease];
-			blankingView.backgroundColor = [UIColor blackColor];
-			[self.view.superview insertSubview:blankingView belowSubview:playbackView];
+            
+            UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
+            if(orientation == deviceOrientation || orientation == UIDeviceOrientationFaceUp || orientation == UIDeviceOrientationFaceDown) {} else {
+            
+                CGRect windowBounds = playbackView.bounds;
+                UIView *blankingView = [[[UIView alloc] initWithFrame:
+                CGRectMake(windowBounds.origin.x - (windowBounds.size.height * 0.5), 
+                           windowBounds.origin.y - (windowBounds.size.height * 0.5), 
+                           windowBounds.size.height*2, 
+                           windowBounds.size.height*2
+                           )] autorelease];
+                
+                blankingView.backgroundColor = [UIColor blackColor];
+                [self.view.superview insertSubview:blankingView belowSubview:playbackView];
 			
-			[UIView animateWithDuration:0.25 animations:^{
-				playbackView.bounds = [self rotatedWindowBounds];
-				playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
-			} completion:^(BOOL complete){
-				[blankingView removeFromSuperview];
-			}];
+                [UIView animateWithDuration:0.25 animations:^{
+                    
+                    if(deviceOrientation == UIDeviceOrientationLandscapeRight && orientation == UIDeviceOrientationLandscapeLeft) {
+                        
+                        playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
+                    }
+                    if(deviceOrientation == UIDeviceOrientationLandscapeLeft && orientation == UIDeviceOrientationLandscapeRight) {
+                        playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
+                    }
+                    
+                    playbackView.bounds = [self rotatedWindowBounds];
+                    playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
+                } completion:^(BOOL complete){
+                    [blankingView removeFromSuperview];
+                }];
+            }
 		}
 		else
 		{
@@ -398,13 +410,7 @@ static NSString *timeStringForSeconds(Float64 seconds)
 			playbackView.bounds = [self rotatedWindowBounds];
             playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
 		}
-	}
-	else
-	{
-		self.view.transform = CGAffineTransformIdentity;
-	}
-    
-    
+	
 }
 
 #pragma mark -
