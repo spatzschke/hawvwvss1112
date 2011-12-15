@@ -521,10 +521,12 @@ static NSString *timeStringForSeconds(Float64 seconds)
 {
     UIImage *buttonImage;
     
+    NSLog(@"Hallo");
     if (isFullscreen)
         buttonImage = [UIImage imageNamed:@"fullscreen-exit"];
     else
-        buttonImage = [UIImage imageNamed:@"fullscreen-exit"];
+        buttonImage = [UIImage imageNamed:@"fullscreen-enter"];
+    
     
     [fullscreenButton setImage:buttonImage forState:UIControlStateNormal];
 }
