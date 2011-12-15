@@ -32,6 +32,7 @@
 		9E31B62C1498D48C0040249E /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9E31B62B1498D48C0040249E /* AVFoundation.framework */; };
 		9E31B62F1498D4930040249E /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9E31B62D1498D4930040249E /* CoreMedia.framework */; };
 		9E31B6301498D4930040249E /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9E31B62E1498D4930040249E /* MediaPlayer.framework */; };
+		BAD8A031149A270A009727F7 /* fullscreen-enter.png in Resources */ = {isa = PBXBuildFile; fileRef = BAD8A030149A270A009727F7 /* fullscreen-enter.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -74,6 +75,7 @@
 		9E31B62B1498D48C0040249E /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		9E31B62D1498D4930040249E /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		9E31B62E1498D4930040249E /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
+		BAD8A030149A270A009727F7 /* fullscreen-enter.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "fullscreen-enter.png"; path = "hls/Resources/images/fullscreen-enter.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,6 +113,7 @@
 			children = (
 				9E16EAC21498D64C00D5C84D /* fullscreen-exit.png */,
 				9E16EAC31498D64C00D5C84D /* icon-72.png */,
+				BAD8A030149A270A009727F7 /* fullscreen-enter.png */,
 				9E16EAC41498D64C00D5C84D /* pause.png */,
 				9E16EAC51498D64C00D5C84D /* play.png */,
 				9E16EAC61498D64C00D5C84D /* volume-max.png */,
@@ -255,6 +258,7 @@
 				9E16EACB1498D64C00D5C84D /* play.png in Resources */,
 				9E16EACC1498D64C00D5C84D /* volume-max.png in Resources */,
 				9E16EACD1498D64C00D5C84D /* volume-min.png in Resources */,
+				BAD8A031149A270A009727F7 /* fullscreen-enter.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
