@@ -1,10 +1,13 @@
-//
-//  XML.m
-//  VWSplitView
-//
-//  Created by Jennifer Schöndorf on 11.12.11.
-//  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
-//
+/**
+ * PlaylistParser.m
+ * 
+ * Responsible for loading and parsing xml asynchronously
+ *
+ * Copyright 2011 
+ *   - Sebastian Schuler
+ *   - Jennifer Schoendorf
+ *   - Stan Patzschke
+ */
 
 #import "PlaylistParser.h"
 
@@ -42,6 +45,13 @@
 }
 
 -(void)requestFailed:(AsyncRequest *)request withError:(NSError *)error{
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Fehler"
+                                                        message:@"Der eingetragene Server ist nicht erreichbar."
+                                                       delegate:nil
+                                              cancelButtonTitle:@"OK"
+                                              otherButtonTitles:nil];
+    [alertView show];
+    [alertView release];
 }
 -(void)requestFinished:(AsyncRequest *)request withData:(NSMutableData *)data{
     xmlParser = [[NSXMLParser alloc] initWithData:data];

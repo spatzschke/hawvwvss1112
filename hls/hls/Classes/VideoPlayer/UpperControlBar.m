@@ -1,10 +1,13 @@
-//
-//  ControlBar.m
-//  HLVideo
-//
-//  Created by Sebastian Schuler on 01.12.11.
-//  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
-//
+/**
+ * UpperControlBar.m
+ * 
+ * Responsible for the upper control bar
+ *
+ * Copyright 2011 
+ *   - Sebastian Schuler
+ *   - Jennifer Schoendorf
+ *   - Stan Patzschke
+ */
 
 #import "UpperControlBar.h"
 

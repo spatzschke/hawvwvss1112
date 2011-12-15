@@ -1,10 +1,13 @@
-//
-//  MovieCell.h
-//  MasterDetail
-//
-//  Created by Jennifer Schöndorf on 10.12.11.
-//  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
-//
+/**
+ * MovieCell.h
+ * 
+ * Custom UITableViewCell to display the video data
+ *
+ * Copyright 2011 
+ *   - Sebastian Schuler
+ *   - Jennifer Schoendorf
+ *   - Stan Patzschke
+ */
 
 #import <UIKit/UIKit.h>
 #import "AsyncRequest.h"

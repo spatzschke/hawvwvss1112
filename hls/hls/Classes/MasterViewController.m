@@ -1,10 +1,11 @@
-//
-//  MasterViewController.m
-//  VWSplitView
-//
-//  Created by Jennifer Schöndorf on 10.12.11.
-//  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
-//
+/**
+ * MasterViewController.m
+ *
+ * Copyright 2011 
+ *   - Sebastian Schuler
+ *   - Jennifer Schoendorf
+ *   - Stan Patzschke
+ */
 
 #import "MasterViewController.h"
 
@@ -56,33 +57,6 @@
     imageQueue = [[NSOperationQueue alloc] init];
     
     hasLoaded = NO;
-}
-
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
-    // Release any retained subviews of the main view.
-    // e.g. self.myOutlet = nil;
-}
-
-- (void)viewWillAppear:(BOOL)animated
-{
-    [super viewWillAppear:animated];
-}
-
-- (void)viewDidAppear:(BOOL)animated
-{
-    [super viewDidAppear:animated];
-}
-
-- (void)viewWillDisappear:(BOOL)animated
-{
-	[super viewWillDisappear:animated];
-}
-
-- (void)viewDidDisappear:(BOOL)animated
-{
-	[super viewDidDisappear:animated];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
@@ -158,7 +132,13 @@
 }
 
 -(void)parseFaild:(PlaylistParser *)xml withError:(NSError *)error{
-    //FEHLER MELDUNG!!!
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Fehler"
+                                                        message:@"Die XML-Datei konnte nicht geparsed werden."
+                                                       delegate:nil
+                                              cancelButtonTitle:@"OK"
+                                              otherButtonTitles:nil];
+    [alertView show];
+    [alertView release];
 }
 
 -(void)parseFinished:(PlaylistParser *)xml withMovies:(NSMutableArray *)movies{
