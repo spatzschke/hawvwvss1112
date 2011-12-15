@@ -255,15 +255,8 @@ static NSString *timeStringForSeconds(Float64 seconds)
         orientation = [[UIDevice currentDevice] orientation];
     }
     
-    // Where is the display, it is shown to the ground or the the sky
-	if (orientation == UIDeviceOrientationFaceDown || orientation == UIDeviceOrientationFaceUp)
-	{
-        NSLog(@"FaceDownUP"); 
-	}
-    
     if (orientation == UIDeviceOrientationPortrait)
 	{
-        NSLog(@"Portrait"); 
         deviceOrientation = UIDeviceOrientationPortrait;
 	}
     
@@ -272,8 +265,6 @@ static NSString *timeStringForSeconds(Float64 seconds)
 	{
 		CGAffineTransform result;
         deviceOrientation = UIDeviceOrientationPortraitUpsideDown;
-        
-        NSLog(@"Upside Down");
         
         ////set different rotationangle for normal and fullscreenview
         
@@ -289,8 +280,6 @@ static NSString *timeStringForSeconds(Float64 seconds)
     // Orientation for Landscape Left
 	else if (orientation == UIDeviceOrientationLandscapeLeft)
 	{
-        NSLog(@"Landscape Left");
-        
         CGAffineTransform result;
         deviceOrientation = UIDeviceOrientationLandscapeLeft;
         
@@ -306,7 +295,6 @@ static NSString *timeStringForSeconds(Float64 seconds)
     // Orientation for Landscape Right
 	else if (orientation == UIDeviceOrientationLandscapeRight)
 	{
-        NSLog(@"Landscape Right");
     
         CGAffineTransform result;
         deviceOrientation = UIDeviceOrientationLandscapeRight;
@@ -387,7 +375,7 @@ static NSString *timeStringForSeconds(Float64 seconds)
                 blankingView.backgroundColor = [UIColor blackColor];
                 [self.view.superview insertSubview:blankingView belowSubview:playbackView];
 			
-                [UIView animateWithDuration:0.25 animations:^{
+                [UIView animateWithDuration:9.25 animations:^{
                     
                     if(deviceOrientation == UIDeviceOrientationLandscapeRight && orientation == UIDeviceOrientationLandscapeLeft) {
                         
@@ -549,9 +537,11 @@ static NSString *timeStringForSeconds(Float64 seconds)
          removeObserver:self
          name:UIDeviceOrientationDidChangeNotification
          object:[UIDevice currentDevice]];
+        
+        
     }
     
-    
+    deviceOrientation = UIDeviceOrientationUnknown;
     
     [[UIApplication sharedApplication] 
      setStatusBarHidden:fullscreen
