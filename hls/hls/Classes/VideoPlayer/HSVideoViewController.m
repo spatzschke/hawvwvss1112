@@ -76,8 +76,8 @@ static void *HSVideoPlayerLikelyToKeepUpObserverContext = &HSVideoPlayerLikelyTo
     [self removeTimeObserver];
 
     [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:AVPlayerItemDidPlayToEndTimeNotification
-                                                  object:nil];
+                            name:AVPlayerItemDidPlayToEndTimeNotification
+                            object:nil];
     
     [player removeObserver:self forKeyPath:kCurrentItemKey];
     [player removeObserver:self forKeyPath:kRateKey];
@@ -236,11 +236,11 @@ static NSString *timeStringForSeconds(Float64 seconds)
 }
 
 #pragma mark Orientation
-/*////////////////////////////////////////////////////////////
+ ////////////////////////////////////////////////////////////
  //
  // Orientationhandling for normal and fullscreen view
  //
- ////////////////////////////////////////////////////////////*/
+ ////////////////////////////////////////////////////////////
 
 //Handles the Rotation an the anchorpoint for the rotationanimation
 - (CGAffineTransform)orientationTransformFromSourceBounds:(CGRect)sourceBounds
@@ -256,24 +256,22 @@ static NSString *timeStringForSeconds(Float64 seconds)
     }
     
     // Where is the display, it is shown to the ground or the the sky
-	if (orientation == UIDeviceOrientationFaceDown)
+	if (orientation == UIDeviceOrientationFaceDown || orientation == UIDeviceOrientationFaceUp)
 	{
-        NSLog(@"FaceDown"); 
-        return CGAffineTransformIdentity;
-        
+        NSLog(@"FaceDownUP"); 
 	}
     
-    if (orientation == UIDeviceOrientationFaceUp)
+    if (orientation == UIDeviceOrientationPortrait)
 	{
-        NSLog(@"FaceUp"); 
-        return CGAffineTransformIdentity;
-        
+        NSLog(@"Portrait"); 
+        deviceOrientation = UIDeviceOrientationPortrait;
 	}
     
     // Orientation for Protrait Upside Down
 	if (orientation == UIDeviceOrientationPortraitUpsideDown)
 	{
 		CGAffineTransform result;
+        deviceOrientation = UIDeviceOrientationPortraitUpsideDown;
         
         NSLog(@"Upside Down");
         
@@ -294,6 +292,7 @@ static NSString *timeStringForSeconds(Float64 seconds)
         NSLog(@"Landscape Left");
         
         CGAffineTransform result;
+        deviceOrientation = UIDeviceOrientationLandscapeLeft;
         
         if(!isFullscreen) {
             result = CGAffineTransformMakeRotation(0 * M_PI);
@@ -307,17 +306,15 @@ static NSString *timeStringForSeconds(Float64 seconds)
     // Orientation for Landscape Right
 	else if (orientation == UIDeviceOrientationLandscapeRight)
 	{
-        NSLog(@"Ladnscape Right");
-        
-		CGRect windowBounds;
+        NSLog(@"Landscape Right");
+    
         CGAffineTransform result;
+        deviceOrientation = UIDeviceOrientationLandscapeRight;
         
         if(!isFullscreen) {
             result = CGAffineTransformMakeRotation(0 * M_PI);
-            windowBounds = self.view.window.bounds;
         } else {
             result = CGAffineTransformMakeRotation(-0.5 * M_PI);
-            windowBounds = playbackView.bounds;
         }
 		
         return result;
@@ -337,12 +334,6 @@ static NSString *timeStringForSeconds(Float64 seconds)
     } else {
         orientation = [[UIDevice currentDevice] orientation];
     }
-    
-	if (orientation == UIDeviceOrientationFaceUp ||
-		orientation == UIDeviceOrientationFaceDown)
-	{
-		orientation = (UIDeviceOrientation)[UIApplication sharedApplication].statusBarOrientation;
-	}
 	
 	if (orientation == UIDeviceOrientationLandscapeLeft ||
 		orientation == UIDeviceOrientationLandscapeRight)
@@ -353,7 +344,13 @@ static NSString *timeStringForSeconds(Float64 seconds)
             CGRect windowBounds = self.view.bounds;
             return CGRectMake(0, 0, windowBounds.size.width, windowBounds.size.height);	
         } else {
+            
             CGRect windowBounds = playbackView.bounds;
+            if (deviceOrientation == orientation) {
+                
+                return CGRectMake(0, 0, windowBounds.size.width, windowBounds.size.height);
+            }
+            
             return CGRectMake(0, 0, windowBounds.size.height, windowBounds.size.width);
         }
 	}
@@ -372,39 +369,52 @@ static NSString *timeStringForSeconds(Float64 seconds)
 // Method Called by Orientation Notification
 - (void)deviceRotated:(NSNotification *)aNotification
 {
-	if (playbackView)
-	{
-        // if a Notfication fired for rotation
-		if (aNotification)
-		{			
-            CGRect windowBounds = playbackView.window.bounds;
-			UIView *blankingView =
-            [[[UIView alloc] initWithFrame:
-              CGRectMake(-0.5 * (windowBounds.size.height - windowBounds.size.width),
-                         0, windowBounds.size.height, windowBounds.size.height)] autorelease];
-			blankingView.backgroundColor = [UIColor blackColor];
-			[self.view.superview insertSubview:blankingView belowSubview:playbackView];
-			
-			[UIView animateWithDuration:0.25 animations:^{
-				playbackView.bounds = [self rotatedWindowBounds];
-				playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
-			} completion:^(BOOL complete){
-				[blankingView removeFromSuperview];
-			}];
-		}
-		else
-		{
-            //rotate without animation / same functionality like with animation
-			playbackView.bounds = [self rotatedWindowBounds];
+    // if a Notfication fired for rotation
+    if (aNotification)
+    {
+        UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
+        
+        if(orientation == UIDeviceOrientationFaceUp || orientation == UIDeviceOrientationFaceDown ||
+           orientation == deviceOrientation) 
+        {
+            return;
+        }
+        
+        CGRect windowBounds = playbackView.bounds;
+        CGRect blankingFrame = CGRectMake(
+                                    windowBounds.origin.x - (windowBounds.size.height * 0.5),
+                                    windowBounds.origin.y - (windowBounds.size.height * 0.5),
+                                    windowBounds.size.height * 2, 
+                                    windowBounds.size.height * 2
+                                );
+        UIView *blankingView = [[[UIView alloc] initWithFrame:blankingFrame] autorelease];
+        
+        blankingView.backgroundColor = [UIColor blackColor];
+        [self.view.window insertSubview:blankingView belowSubview:playbackView];
+    
+        [UIView animateWithDuration:0.25 
+        animations:^{
+            if(deviceOrientation == UIDeviceOrientationLandscapeRight && orientation == UIDeviceOrientationLandscapeLeft) 
+            {
+                playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
+            }
+            else if(deviceOrientation == UIDeviceOrientationLandscapeLeft && orientation == UIDeviceOrientationLandscapeRight) 
+            {
+                playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
+            }
+            playbackView.bounds = [self rotatedWindowBounds];
             playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
-		}
-	}
-	else
-	{
-		self.view.transform = CGAffineTransformIdentity;
-	}
-    
-    
+        } 
+        completion:^(BOOL complete){
+            [blankingView removeFromSuperview];
+        }];
+    }
+    else
+    {
+        //rotate without animation / same functionality like with animation
+        playbackView.bounds = [self rotatedWindowBounds];
+        playbackView.transform = [self orientationTransformFromSourceBounds:playbackView.bounds];
+    }
 }
 
 #pragma mark -
@@ -517,11 +527,10 @@ static NSString *timeStringForSeconds(Float64 seconds)
          }];
         
         //Add Observer for orientation change
-        [[NSNotificationCenter defaultCenter]
-         addObserver:self
-         selector:@selector(deviceRotated:)
-         name:UIDeviceOrientationDidChangeNotification
-         object:[UIDevice currentDevice]];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                selector:@selector(deviceRotated:)
+                                name:UIDeviceOrientationDidChangeNotification
+                                object:[UIDevice currentDevice]];
     }
     else 
     {
@@ -539,17 +548,14 @@ static NSString *timeStringForSeconds(Float64 seconds)
          }];
         
         //Remove Observer for orientation change
-        [[NSNotificationCenter defaultCenter]
-         removeObserver:self
-         name:UIDeviceOrientationDidChangeNotification
-         object:[UIDevice currentDevice]];
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+                                name:UIDeviceOrientationDidChangeNotification
+                                object:[UIDevice currentDevice]];
     }
     
-    
-    
     [[UIApplication sharedApplication] 
-     setStatusBarHidden:fullscreen
-     withAnimation:UIStatusBarAnimationFade];
+        setStatusBarHidden:fullscreen
+        withAnimation:UIStatusBarAnimationFade];
     
     isFullscreen = fullscreen;
     
@@ -722,8 +728,8 @@ static NSString *timeStringForSeconds(Float64 seconds)
         [playerItem removeObserver:self forKeyPath:kStatusKey];            
 		
         [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                        name:AVPlayerItemDidPlayToEndTimeNotification
-                                                      object:playerItem];
+                                name:AVPlayerItemDidPlayToEndTimeNotification
+                                object:playerItem];
     }
 	
     /* Create a new instance of AVPlayerItem from the now successfully loaded AVAsset. */
@@ -748,9 +754,9 @@ static NSString *timeStringForSeconds(Float64 seconds)
     /* When the player item has played to its end time we'll toggle
      the movie controller Pause button to be the Play button */
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(playerItemDidReachEnd:)
-                                                 name:AVPlayerItemDidPlayToEndTimeNotification
-                                               object:playerItem];
+                            selector:@selector(playerItemDidReachEnd:)
+                            name:AVPlayerItemDidPlayToEndTimeNotification
+                            object:playerItem];
     
     /* Create new player, if we don't already have one. */
     if (!player)

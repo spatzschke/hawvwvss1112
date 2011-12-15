@@ -45,6 +45,8 @@ typedef NSInteger HSVideoFinishReason;
     IBOutlet UIButton *fullscreenButton;
     IBOutlet UIActivityIndicatorView *loadingIndicator;
     
+    UIDeviceOrientation deviceOrientation;
+    
     id timeObserver;
     
 @public
