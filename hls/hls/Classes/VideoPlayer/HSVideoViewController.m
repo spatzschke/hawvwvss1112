@@ -772,7 +772,7 @@ static NSString *timeStringForSeconds(Float64 seconds)
         blankingView.backgroundColor = [UIColor blackColor];
         [self.view.window insertSubview:blankingView belowSubview:playbackView];
         
-        [UIView animateWithDuration:0.25 
+        [UIView animateWithDuration:0.5 
                          animations:^{
                              playbackView.bounds = [self rotatedWindowBounds];
                              playbackView.transform = [self orientationTransformFromSourceBounds];
