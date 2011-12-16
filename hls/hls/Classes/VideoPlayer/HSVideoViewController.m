@@ -723,7 +723,7 @@ static NSString *timeStringForSeconds(Float64 seconds)
 
 - (CGRect)rotatedWindowBounds
 {
-    UIDeviceOrientation orientation = (UIDeviceOrientation)[[UIApplication sharedApplication] statusBarOrientation]; 
+    UIDeviceOrientation orientation = (UIDeviceOrientation)[[UIApplication sharedApplication] statusBarOrientation];
     
 	if (orientation == UIDeviceOrientationLandscapeLeft ||
 		orientation == UIDeviceOrientationLandscapeRight)
@@ -733,13 +733,7 @@ static NSString *timeStringForSeconds(Float64 seconds)
             CGRect windowBounds = self.view.bounds;
             return CGRectMake(0, 0, windowBounds.size.width, windowBounds.size.height);	
         } else {
-            
-            CGRect windowBounds = playbackView.bounds;
-            if (deviceOrientation == orientation) {
-                
-                return CGRectMake(0, 0, windowBounds.size.width, windowBounds.size.height);
-            }
-            
+            CGRect windowBounds = self.view.window.bounds;
             return CGRectMake(0, 0, windowBounds.size.height, windowBounds.size.width);
         }
 	}
